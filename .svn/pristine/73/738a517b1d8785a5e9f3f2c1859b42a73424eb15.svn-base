@@ -1,0 +1,46 @@
+package com.frame.command;
+
+/**
+ * 登录传参
+ */
+public class AuthorizationCommand {
+	private String account;
+	private String password;
+	/*
+	 *验证类型 
+	 *0:校验用户名、密码
+	 *1:校验邮箱、密码 
+	 *2:校验 手机号、密码 
+	 *3:校验 手机号、动态验证码 
+	 */
+	private int type;
+
+	public String getAccount() {
+		return account;
+	}
+
+	public void setAccount(String account) {
+		this.account = account;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public int getType() {
+		return type;
+	}
+
+	public void setType(int type) {
+		this.type = type;
+	}
+
+ 
+
+ 
+
+}

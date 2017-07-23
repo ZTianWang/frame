@@ -1,0 +1,69 @@
+package com.frame.test;
+
+
+import java.util.Date;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.frame.entity.Account;
+import com.frame.service.AccountService;
+import com.frame.utils.KVMap;
+import com.frame.utils.pager.Pager;
+import com.frame.utils.pager.SystemContext;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+//配置了@ContextConfiguration注解并使用该注解的locations属性指明spring和配置文件之后，
+@ContextConfiguration(locations = {"classpath:applicationContext.xml", "classpath:spring-mybatis.xml" })
+public class SpringTest {
+
+	
+	 String id="b2e23fae892945649e3743e891b7c93e";//从数据库中找到数据id
+   
+	 @Autowired
+	 private AccountService accountService;
+    
+//    @Test
+    public void addUser(){
+       Account account=new Account();
+       account.setAccount("alfred");
+       account.setCellphone("15801187545");
+       account.setCreateDate(new Date());
+       account.setEmail("mrlixiaopeng@163.com");
+       account.setPassword("990448338");
+       accountService.add(account);
+    }
+//    @Test
+    public void updateUser(){
+    	Account account=accountService.load(id);
+    	account.setPassword("99999999");
+    	accountService.update(account);
+      
+    }
+//    @Test
+    public void deleteUser(){
+    	accountService.delete(id);
+    }
+ 
+//    @Test
+    public void count() {
+    	int num=accountService.count(null, new KVMap<String,Object>().add("oorder", "7"));
+    	 System.out.println("from count:"+num);
+    }
+    @Test
+    public void findList() {
+    	System.out.println(accountService.findAccount("2016-04-04 19:05:17"));
+//    	SystemContext.setPageSize(15);
+//    	SystemContext.setPageOffset(0);
+//    	SystemContext.setSort("create_date");
+//    	SystemContext.setOrder("desc");
+//    	Pager<Account> page=accountService.findPage(null, null);
+//    	System.out.println(page.getData());
+    
+    }
+    
+   
+}

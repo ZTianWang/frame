@@ -1,0 +1,85 @@
+package com.frame.utils.ftp;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ResourceBundle;
+
+import org.apache.commons.net.ftp.FTPClient;
+
+public class FTPUtil {
+
+	private static FTPClientPool pool;
+	private static String rootPath = "upload/";
+
+	public static boolean uploadFile(String path, InputStream is) {
+		FTPClient client = null;
+		try {
+			client = pool.borrowObject();
+
+			return client.storeFile(rootPath + path, is);
+		} catch (Exception e) {
+			return false;
+		} finally {
+			try {
+				pool.returnObject(client);
+			} catch (Exception e1) {
+				// 不作处理
+			}
+			if (is != null) {
+				try {
+					is.close();
+				} catch (IOException e) {
+
+				}
+			}
+		}
+
+	}
+
+	public static boolean downloadFile(String path, OutputStream os) {
+		FTPClient client = null;
+		try {
+			client = pool.borrowObject();
+			return client.retrieveFile(rootPath + path, os);
+		} catch (Exception e) {
+			return false;
+		} finally {
+			try {
+				pool.returnObject(client);
+			} catch (Exception e1) {
+				// 不作处理
+			}
+			if (os != null) {
+				try {
+					os.close();
+				} catch (IOException e) {
+
+				}
+			}
+		}
+
+	}
+
+	public   void initFTPPool(ResourceBundle resource) throws Exception {
+		FTPClientConfigure config = new FTPClientConfigure();
+		config.setHost(resource.getString("ftp.host"));
+		config.setPort(Integer.parseInt(resource.getString("ftp.port")));
+		config.setUsername(resource.getString("ftp.userName"));
+		config.setPassword(resource.getString("ftp.password"));
+		config.setPassiveMode("true");
+		config.setEncoding(resource.getString("ftp.encoding"));
+		config.setClientTimeout(Integer.parseInt(resource.getString("ftp.clientTimeout")));
+		config.setPoolSize(Integer.parseInt(resource.getString("ftp.poolSize")));
+
+		FTPClientFactory factory = new FTPClientFactory(config);
+
+		pool = new FTPClientPool(config.getPoolSize(), factory);
+
+		// 初始化ftp根目录的上传路径
+		FTPClient client = pool.borrowObject();
+		client.makeDirectory(rootPath);
+		pool.returnObject(client);
+	}
+
+}

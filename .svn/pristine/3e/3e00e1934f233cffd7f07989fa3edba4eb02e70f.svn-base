@@ -1,0 +1,55 @@
+账号:<input  type="text"  id="account"    /> <br/>
+手机号:<input  type="text"  id="cellphone"    /><br/>
+邮箱:<input   type="text"  id="email"    /><br/>
+
+开始日期：<input type="text" class="Wdate"   name="startDate" id="startDate"  readonly onclick="WdatePicker({maxDate:'#F{$dp.$D(\'endDate\')}'})"/><br/>
+结束日期：<input type="text" class="Wdate"   name="endDate" id="endDate"  readonly  onclick="WdatePicker({minDate:'#F{$dp.$D(\'startDate\')}'})"/><br/>
+
+<input type="button"  id="searchBtn"  value="查询"/>
+<table class="table table-list">
+	<thead>
+		<tr>
+			<th>账号</th>
+			<th>手机号</th>
+			<th>邮箱</th>
+			<th>创建时间</th>
+			<th>操作</th>
+		</tr>
+	</thead>
+	<tbody id="resultTable">
+	</tbody>
+	<tfoot class="table-footer">
+		<tr>
+			<td colspan="4" id="pager"></td>
+		</tr>
+	</tfoot>
+</table>
+<script type="text/html" id="listHtml">
+      {{if total>0 }}
+  {{each data as account}}
+       <tr>
+            <td>{{account.account}}</td>
+            <td>{{account.cellphone}}</td>
+			<td>
+{{if account.email.indexOf('@163.com')!=-1}}
+						{{account.email}}网易邮箱
+					{{else if account.email.indexOf('@qq.com')!=-1}}
+						{{account.email}}腾讯邮箱
+					{{else}}
+                               {{account.email}}
+                	{{/if}}
+</td>
+            <td>{{account.createDate}}</td>
+ <td>
+      <input  type="button"  accountId="{{account.id}}"  value="测试"  function="add"  />
+      <input  type="hidden"  id="{{account.id}}"   account="{{account}}"  />
+</td>
+        </tr>
+  {{/each}}
+  {{/if}}
+    </script>
+<script type="text/javascript">
+seajs.use('account/list',function(list){
+	list.init();
+});
+</script>

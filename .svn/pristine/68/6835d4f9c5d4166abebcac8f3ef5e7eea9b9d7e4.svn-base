@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>管理</title>
+<link rel="stylesheet" href="resources/css/theme.css"  id="theme" />
+</head>
+<body>
+<div  id="test"></div>
+ 
+<input type="button"   id="button" value="点击"  />
+<script  type="text/javascript" src="resources/js/sea.js"></script>
+<script type="text/html"  id="testHtml">
+<div>测试内容<%=name%></div>
+</script>
+
+<script type="text/javascript">
+seajs.use("account/account");
+</script>
+</body>
+</html>

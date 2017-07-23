@@ -1,0 +1,84 @@
+package com.frame.service.base;
+
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
+import org.apache.ibatis.session.ResultContext;
+import org.apache.ibatis.session.ResultHandler;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.frame.mapper.base.BaseMapper;
+import com.frame.utils.MyBatisHelper;
+public class BaseService<T> {
+
+	@Autowired
+	private BaseMapper<T> baseMapper;
+	private Class<?> clz;
+	@Autowired
+	private SqlSessionFactory sqlSessionFactory;
+	
+	private Class<?> getClz() {
+		 
+		if (clz == null) {
+			// 获取泛型的Class对象
+			clz = ((Class<?>) (((ParameterizedType) (this.getClass().getGenericSuperclass()))
+					.getActualTypeArguments()[0]));
+		}
+		return clz;
+	}
+	public void add(T entity) {
+        baseMapper.insert(entity);
+	}
+	public void update(T entity) {
+        baseMapper.update(entity);
+	}
+	public void delete(String id) {
+		Map<String, Object> parameter=new HashMap<String, Object>();
+		parameter.put("id", id);
+		parameter.put("clz", getClz());
+        baseMapper.delete(parameter);
+	}
+	
+	
+	public T load(String id) {
+		SqlSession  session=sqlSessionFactory.openSession();
+		List<T> list=new ArrayList<T>();
+		try{
+			Map<String,Object>  paramter=new HashMap<String,Object>();
+			paramter.put("sql", "select *  from "+MyBatisHelper.getTableName(getClz())+"  where id=#{id}");
+			paramter.put("id", id);
+			session.select(BaseMapper.class.getName()+".selectOne",paramter, new ResultHandler() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public void handleResult(ResultContext context) {
+						try {
+							 Map<String,Object> resultMap=(Map<String, Object>) context.getResultObject();
+							 T  obj = (T)getClz().newInstance();
+							 MyBatisHelper.copyProp(obj, resultMap);
+						     list.add(obj);
+						} catch (InstantiationException | IllegalAccessException e) {
+							return;
+						}
+				}
+			});
+			
+		}catch(Exception e){
+			return null;
+		}finally{
+			if(session!=null){
+				session.close();
+			}
+		}
+		
+         return  list.size()!=0?list.get(0):null;
+	}
+	
+ 
+	
+}

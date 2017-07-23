@@ -1,0 +1,21 @@
+package com.frame.test;
+
+import com.frame.enumtype.LoginSourceEnum;
+ 
+
+public class Test {
+	 
+   
+	public static void main(String[] args) throws Exception {
+     }
+	
+//	public static Enum getEnum(String name){
+//		return Enum.valueOf(enumType, name)
+//	}
+	 
+ 
+	 
+	
+	  
+   
+}

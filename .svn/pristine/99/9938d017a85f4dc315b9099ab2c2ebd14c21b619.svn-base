@@ -1,0 +1,61 @@
+define(function(require, exports, module) {
+	
+var bindHistory=function(){
+ 	require.async('js/jquery/jquery.history.min',function(){
+		$.History.bind(function(state) {
+			if (state) {
+				var q = state.indexOf('?');
+				if (q != -1) {
+					state = state.substring(0, q);
+				}
+				$.ajax({
+					 url:'/' + state + '.html',
+					 beforeSend: function() {
+						 $('body').append("<div id=\"stateLoading\"   class=\"loading\"></div>");
+					 },
+					 success:function(content){
+						document.getElementById('mainHtml').innerHTML='';
+					    $('#mainHtml').html(content);;
+						
+					},
+					error: function() {
+						newsHint('功能已关闭');
+					},
+					complete: function() {
+					   $('#stateLoading').remove();
+					}
+				});
+			} 
+		});
+	});
+}	
+ 	/*获取菜单*/
+var queryMenus=function (){
+		 KU.send({
+				url:'authorization/menus',
+				eText:'查询不到菜单信息',
+				cache:true,
+				success:function(data){
+					$('#menusHtml').html(template('menusTpl', {menus:data}));
+				}
+			});  
+	 }
+
+ 
+
+
+exports.init=function(){
+	bindHistory();
+	/*获取权限信息*/
+	KU.send({
+		url:'authorization/functions',
+		eText:'查询不到拥有权限',
+		cache:true,
+		success:function(data){
+			var functions=require('functions');
+			functions.init(data);
+			queryMenus();
+		}
+	});  
+ }
+});

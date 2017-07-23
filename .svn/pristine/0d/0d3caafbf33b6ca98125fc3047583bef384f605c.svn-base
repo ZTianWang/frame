@@ -1,0 +1,54 @@
+define(function(require, exports, module) {
+	 
+ 	require.async('js/jquery/jquery.history.min',function(){
+		$.History.bind(function(state) {
+//			location.replace(document.referrer);
+//			c(document.referrer);
+			if (state) {
+				var q = state.indexOf('?');
+				if (q != -1) {
+					state = state.substring(0, q);
+				}
+				$('#mainHTML').load('/' + state + '.html');
+			}else{
+				$('#mainHTML').load('/welcome.html');
+			} 
+		});
+	});
+	require('dialog');
+ 
+	/*var notice=DLG({
+		id:'notice',
+		content:' <span   id="closeNotice" >x</span><br/>点击这里无刷新显示页面'
+	}).showModal($('#clickMe')[0]);
+	
+		$('#closeNotice').on('click', function() {
+			notice.remove();
+		}); */
+		
+	
+	$('#normalDialog').on('click', function() {
+		var d = dialog({
+			title : '弹出组件',
+			content : '<font color="red">测试一下内容，看看标题栏是不是会被隐藏</font>',
+			ok:function(){
+				alert('点击了ok');
+			},
+			cancel:function(){
+				alert('点击了取消');
+			}
+		});
+		d.show();
+	/*	setTimeout(function() {
+			d.remove();
+		}, 2000);*/
+	}); 
+	$('#modalDialog').on('click', function() {
+		var d = dialog({
+			title : '模态窗口',
+			content : '这是一个模态窗口'
+		});
+		d.showModal();
+	}); 
+	
+});

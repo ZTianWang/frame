@@ -1,0 +1,71 @@
+define(function(require, exports, module) {
+	var indexHtml='?current=welcome&'+KU.belongTo+'=welcome';//默认welcome
+	var lashHtml;
+var bindHistory=function(){
+	/*异步加载js，并且监听浏览器hash变化，即#后面内容*/
+ 	require.async('js/jquery/jquery.history.min',function(){
+		$.History.bind(function(state) {
+			state=getParameter('current');
+			if (state==null) {
+				state=indexHtml;
+			} 
+ 			/*如果实际要处理的页面没变，则直接返回*/
+			if(lashHtml==state){
+				var  currentJs=require(state);
+			    if(currentJs&&currentJs.hashChange){
+			    	currentJs.hashChange();
+			    }
+				return;
+			}
+			$.ajax({
+				 url:state + '.html',
+				 beforeSend: function() {
+					 $('body').append('<div id="stateLoading"   class="loading"></div>');
+				 },
+				 success:function(content){
+					 lashHtml=state;
+					document.getElementById('mainHtml').innerHTML='';
+				    $('#mainHtml').html(content);;
+					
+				},
+				error: function() {
+					newsHint('页面可能被修改，请重试');
+				},
+				complete: function() {
+				   $('#stateLoading').remove();
+				}
+			});
+		});
+	});
+};
+var bindNavMenu=function(){
+	$('#menusHtml').on('click','a[name="navMenu"]',function() {
+		var url=$(this).attr('url');
+	if(url!=getParameter('current')){
+			window.location.hash='?current='+url+'&'+KU.belongTo+'='+url;
+	}
+	});
+};
+exports.init=function(){
+	/*获取权限信息*/
+	KU.send({
+		url:'authorization/roles',
+		eText:'权限信息异常',
+		cache:true,
+		success:function(data){
+			/*初始化菜单对应的按钮级信息*/
+			KU.roleFunctions=data.functions;
+			/*初始化url监听组件*/
+			bindHistory();
+			/*初始化菜单*/
+			$('#menusHtml').html(template('menusTpl', {menus:data.menus}));
+			bindNavMenu();//绑定菜单按钮
+		}
+	});  
+	if(window.location.hash==''){
+		window.location.hash=indexHtml;
+	}
+ }
+/*引入dialog组件，即弹出框组件，其它功能不用再次引入*/
+require('dialog');
+});

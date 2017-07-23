@@ -1,0 +1,13 @@
+package com.frame.mapper;
+
+import java.util.List;
+
+import com.frame.entity.User;
+
+public interface  UserMapper {
+	
+	public  int insert(User user);
+	
+	public List<User> queryUsers();
+
+}

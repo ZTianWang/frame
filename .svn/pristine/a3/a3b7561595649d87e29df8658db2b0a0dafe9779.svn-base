@@ -1,0 +1,31 @@
+package com.frame.test;
+
+
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.frame.service.RoleService;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+//配置了@ContextConfiguration注解并使用该注解的locations属性指明spring和配置文件之后，
+@ContextConfiguration(locations = {"classpath:applicationContext.xml", "classpath:spring-mybatis.xml" })
+public class SpringTest {
+	 @Autowired
+	 private  RoleService roleService;
+    
+   
+	@Test
+    public void testMenus() throws JsonProcessingException{
+		List<Map<String,Object>> list=roleService.findMenuFunctionByAccountId("4a629d4f3d2146aba54ac69c250d8961", "dd8f999945bc493f9e13455527e6f6f2");
+     ObjectMapper om=new ObjectMapper();
+    System.out.println(om.writeValueAsString(list)); 
+	}
+}

@@ -1,0 +1,37 @@
+define(function(require, exports) {
+	require('pager');// 使用分页
+	require('dPicker');
+	function query() {// 定义查询方法
+		KU.send({
+			url : 'account/page',
+			eText : true,/* 根据状态码自动提示错误信息 */
+			data : {
+				account : $('#account').val(),
+				cellphone : $('#cellphone').val(),
+				email : $('#email').val(),
+				startDate : $('#startDate').sd(),
+				endDate : $('#endDate').ed(),
+			},
+			success : function(data) {
+				$("#resultTable").html(template('listHtml', data));/* 填充页面数据 */
+				data.query = query;
+				$("#pager").pager(data);
+				bindFunction();
+			}
+		});
+	}
+
+exports.init = function() {
+		query();// 默认直接查询
+		$('#searchBtn').on('click', function() {
+			query();
+		});
+	}
+
+function bindFunction(){
+	 $("input[function=add]").on('click', function() {
+			 alert($(this).attr('id'));
+		});
+}
+
+});

@@ -1,0 +1,70 @@
+package com.frame.test;
+
+
+import java.util.Date;
+import java.util.List;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.frame.entity.User;
+import com.frame.service.UserService;
+import com.frame.utils.KVMap;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+//配置了@ContextConfiguration注解并使用该注解的locations属性指明spring和配置文件之后，
+@ContextConfiguration(locations = {"classpath:spring.xml", "classpath:spring-mybatis.xml" })
+public class SpringTest {
+
+	
+	 String id="220b82626f0b4cb58c0b955992ae0987";//从数据库中找到数据id
+    //注入userService
+    @Autowired
+    private UserService userService;
+    
+//    @Test
+    public void addUser(){
+        User user = new User();
+        user.setUserName("测试一下");
+        user.setOorder(999999);
+        user.setCreateDate(new Date());
+        userService.add(user);
+    }
+//    @Test
+    public void updateUser(){
+        User user=userService.load(id);
+        if(user!=null){
+        	 user.setOorder(007);
+        	 userService.update(user);
+        }else{
+        	System.out.println("user is  null");
+        }
+    }
+//    @Test
+    public void deleteUser(){
+        userService.delete(id);
+    }
+    
+//    @Test
+    public void load() {
+    	 User user=userService.load(id);
+    	 System.out.println("from load:"+user);
+    }
+//    @Test
+    public void count() {
+    	int num=userService.count("oorder=#{oorder}", new KVMap<String,Object>().add("oorder", "7"));
+    	 System.out.println("from count:"+num);
+    }
+    @Test
+    public void findList() {
+    	List<User> list=userService.findList("1=1",new KVMap<String,Object>());
+     for(User user:list){
+    	 System.out.println("from findList:"+user);
+     }
+    }
+    
+   
+}

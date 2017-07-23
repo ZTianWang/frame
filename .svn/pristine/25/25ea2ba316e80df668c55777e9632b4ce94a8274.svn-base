@@ -1,0 +1,29 @@
+package com.frame.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.frame.entity.AccountEntity;
+import com.frame.entity.AttachmentEntity;
+import com.frame.mapper.AccountMapper;
+import com.frame.service.base.BaseService;
+import com.frame.utils.KVMap;
+
+@Service
+public class AccountService  extends BaseService<AccountEntity>{
+
+	@Autowired
+	private AccountMapper accountMapper;
+	 
+	
+ 
+	
+	public List<AccountEntity> findAccount(String startDate){
+		return accountMapper.findAccount(new KVMap<String,Object>().add("startDate", startDate));
+	}
+	
+ 
+	
+}

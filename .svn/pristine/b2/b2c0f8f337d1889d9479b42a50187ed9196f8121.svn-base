@@ -1,0 +1,48 @@
+define(function(require, exports, module) {
+exports.init=function(){
+ 	require.async('js/jquery/jquery.history.min',function(){
+		$.History.bind(function(state) {
+			if (state) {
+				var q = state.indexOf('?');
+				if (q != -1) {
+					state = state.substring(0, q);
+				}
+				$.ajax({
+					 url:'/' + state + '.html',
+					 beforeSend: function() {
+						 $('body').append("<div id=\"stateLoading\"   class=\"loading\"></div>");
+					 },
+					 success:function(content){
+						document.getElementById('mainHTML').innerHTML='';
+					    $('#mainHTML').html(content);;
+						
+					},
+					error: function() {
+						newsHint('获取页面失败');
+					},
+					complete: function() {
+					   $("#stateLoading").remove();
+					}
+				});
+			} 
+		});
+	});
+ 	
+ 	
+	require('dialog');
+	$('#normalDialog').on('click', function() {
+		var d = DLG({
+			title : '弹出组件',
+			content : '<font color="red">测试一下内容，看看标题栏是不是会被隐藏</font>',
+			ok:function(){
+				alert('点击了ok');
+			},
+			cancel:function(){
+				alert('点击了取消');
+			}
+		});
+		d.show();
+	}); 
+	 
+ }
+});

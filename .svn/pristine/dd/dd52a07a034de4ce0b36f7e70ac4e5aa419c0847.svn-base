@@ -1,0 +1,33 @@
+package com.frame.test;
+
+import java.util.UUID;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.frame.domain.User;
+import com.frame.service.IUserService;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+//配置了@ContextConfiguration注解并使用该注解的locations属性指明spring和配置文件之后，
+@ContextConfiguration(locations = {"classpath:spring.xml", "classpath:spring-mybatis.xml" })
+public class SpringTest {
+
+    //注入userService
+    @Autowired
+    private IUserService userService;
+    
+    @Test
+    public void testAddUser(){
+        User user = new User();
+        user.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+        user.setName("白虎神皇xdp");
+        user.setOorder(999999);
+        userService.addUser(user);
+    }
+    
+   
+}

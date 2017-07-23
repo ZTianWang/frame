@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Matrix Admin</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="resources/css/bootstrap.min.css" />
+<link rel="stylesheet" href="resources/css/theme.css" />
+<link rel="shortcut icon" href="resources/img/favicon.ico" />
+</head>
+<body class="main-body">
+	<!--Header-part-->
+	<div id="header" class="header">
+		<a   class="logo pull-left"></a>
+		<div class="navbar navbar-inverse nav-bar clearfix">
+			<ul class="nav drop-down pull-left">
+				<li class="dropdown"><a data-toggle="dropdown"
+					class="dropdown-toggle"> <i class="icon-cog"></i> <span
+						class="text sz12">设置</span> <b class="caret"></b>
+				</a>
+					<ul class="dropdown-menu">
+						<li><a   data="url=changePwd" class="jump-btn"><i
+								class="icon-user  mr5"></i>修改密码</a></li>
+					</ul></li>
+				<li class="dropdown"><a  
+					class="jump-btn" id="messageCon"  
+					data="url=notice/unreadNoticeManager"> <i
+						class="icon icon-comments-alt" style="font-size: 1.5em;"></i> <span
+						class="text">通告</span> <span id="msgCount"
+						class="label label-important ">0</span>
+				</a></li>
+			</ul>
+            <!--header-right-->
+			<div class="pull-right">
+				<strong class="pull-left fs7"><i class="icon-white icon-ok-sign mr5"></i><span
+					id="accountTopText">...</span></strong>
+				<ul class="nav drop-down pull-left ml20" id="roles">
+					<li class="dropdown"><a data-toggle="dropdown"
+						class="dropdown-toggle"> <i class="icon-user"></i> <span
+							class="text sz12">角色信息</span>
+					</a>
+				    </li>
+				</ul>
+				<a class="signout pull-left"   id="logout"
+					 ><i class="icon-signout"></i><span
+					class="text">退出账号</span> </a>
+			</div>
+			<!--end header-right-->
+		</div>
+	</div>
+	<!--sidebar-menu-->
+	<div id="sidebar" class="sidebar">
+		<ul class="menu"  id="menusHtml">
+		  <li class="submenu">
+            <a data="url=index" class="jump-btn">
+                <i class="icon-home"></i> 
+                <span>管理桌面</span>
+            </a>
+        </li>
+        <!-- 测试菜单  开始-->
+     
+        <!-- 测试菜单结束 -->
+		</ul>
+	</div>
+	<!--页面内容加载-->
+	<!--main-container-part-->
+	<div id="content" class="content">
+		<div id="content-header" class="content-header">
+			<div id="breadcrumb">
+				<a  class="tip-bottom"><i
+					class="icon-dashboard mr5  icon-th-list"></i>管理桌面</a> 
+					<span id="navTextHtml">
+                      ...
+                    </span>
+			</div>
+		</div>
+		<div class="container-box" id="mainHtml"></div>
+		<!-- <div class="footer">2016 &copy; Powered by SMILE.</div> -->
+	</div>
+	
+		
+<script type="text/html" id="navTextTpl">
+{{each navTextArray}}
+{{if $index+1!=navTextArray.length}}
+<a      class="tip-bottom"><span class="level" >{{$value.text}}{{$value}}</span></a> 
+{{else}}
+ <a     class="current"><span class="level">{{$value}}</span></a>
+{{/if}}
+{{/each}}
+</script>
+	
+<script type="text/html" id="rolesTpl">
+    {{if roles}}
+    {{if roles.length==1}}
+    <li  ><a style="cursor:text;"> <i class="icon-user"></i> <span
+		class="text sz12">{{roles[0].name}}</span>
+   </a>
+	</li>
+
+    {{else}}
+    <li class="dropdown"><a data-toggle="dropdown"
+	class="dropdown-toggle"> <i class="icon-user"></i> <span
+		class="text sz12">角色信息</span> <b class="caret"></b>
+   </a>
+	 <ul class="dropdown-menu">
+    {{each roles as role}}
+        <li><a>{{role.name}}</a></li>
+     {{/each}}
+	</ul>
+	</li>
+     {{/if}}
+  {{/if}}
+</script>
+	<script  type="text/html" id=menusTpl>
+ {{each menus as menu}}
+{{if menu.children}}
+ <li class="submenu">
+            <a   name="showNav" id="{{menu.menuId}}SubMenu">
+                <i class="{{menu.icon}}"></i> 
+                <span>{{menu.menuName}}</span>
+                <i class="pull-right fr-icon icon icon-chevron-down"></i>
+            </a>
+            <!--对应的二级菜单-->
+             <ul>
+{{addNavText(menu.menuId,menu.menuName)}}
+      {{each menu.children as child}}
+ <li name="navMenu"    id="{{child.menuUrl?child.menuUrl.replace(/\//g, ''):child.menuId}}NavLi" 
+{{if child.children}}
+ {{addNavText(child.menuId,child.menuName,menu.menuId)}}
+    {{initModule(child.menuId, child.children)}}
+  data="url={{child.children[0].menuUrl}}&modules={{child.menuId}}"
+{{else}}
+    {{addNavText(child.menuUrl,child.menuName,menu.menuId)}}
+     data="url={{child.menuUrl}}"
+{{/if}}
+>
+                 <a>{{child.menuName}}</a>
+             </li>
+            {{/each}}
+              </ul>
+         </li>
+ {{/if}}
+{{/each}}
+    </script>
+<script  type="text/javascript" src="resources/js/sea.js"></script>
+<script type="text/javascript">
+seajs.use('main',function(main){
+	 main.init();
+});
+</script>
+</body>
+</html>
+

@@ -1,0 +1,8 @@
+package com.frame.mapper;
+
+ 
+
+public interface  UserMapper {
+ 
+ 
+}

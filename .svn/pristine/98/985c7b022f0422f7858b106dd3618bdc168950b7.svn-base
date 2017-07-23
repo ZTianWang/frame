@@ -1,0 +1,40 @@
+package com.frame.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.frame.command.AuthorizationCommand;
+import com.frame.dto.AuthorizationDto;
+import com.frame.service.AuthorizationService;
+import com.frame.utils.Constant;
+
+@RestController
+@RequestMapping("/authorization")
+public class AuthorizationController {
+	
+	@Autowired
+	private AuthorizationService   authorizationService;
+	
+	
+	@RequestMapping(method=RequestMethod.POST)
+	public AuthorizationDto login(@RequestBody AuthorizationCommand cmd){
+		return authorizationService.queryLogin(cmd);
+	}
+	
+	@RequestMapping(value="/menus",method=RequestMethod.GET)
+	public List<Map<String,Object>> findMenusByAuthorization(@RequestHeader(Constant.AUTHORIZATION) String authorization){
+		return authorizationService.findMenusInfoByAuthorization(authorization);
+	}
+	@RequestMapping(value="/functions",method=RequestMethod.GET)
+	public Map<String,List<Map<String,Object>>> findFunctionsByAuthorization(@RequestHeader(Constant.AUTHORIZATION) String authorization){
+		return authorizationService.findFunctionsInfoByAuthorization(authorization);
+	}
+
+}

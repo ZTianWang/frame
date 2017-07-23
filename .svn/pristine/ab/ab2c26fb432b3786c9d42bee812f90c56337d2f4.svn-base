@@ -1,0 +1,20 @@
+package com.frame.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.frame.dao.UserMapper;
+import com.frame.domain.User;
+import com.frame.service.IUserService;
+@Service
+public class UserServiceImpl implements IUserService {
+
+	@Autowired
+	private UserMapper userMapper;// 注入dao
+
+	@Override
+	public void addUser(User user) {
+		 userMapper.insert(user);
+	}
+
+}

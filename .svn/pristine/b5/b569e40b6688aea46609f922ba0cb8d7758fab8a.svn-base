@@ -1,0 +1,11 @@
+package com.frame.service;
+
+import org.springframework.stereotype.Service;
+
+import com.frame.entity.RoleEntity;
+import com.frame.service.base.BaseService;
+
+@Service
+public class RoleService extends BaseService<RoleEntity>{
+
+}

@@ -1,0 +1,160 @@
+define(function(require, exports, module) {
+	var indexHtml='url=index';//默认index
+	var lashHtml;
+var modulesExcute=function(currentModule,modulesFlag){
+	var modules=KU.menuModules[modulesFlag];
+	if(modules){
+		var html='';
+		for(var i in modules){
+			var temp=modules[i];
+			var menuUrl=temp['menuUrl'];
+			html += '<li class="' + (menuUrl==currentModule?(active='active'):'') + '"><a href="javascript:void(0)"  data="url=' + menuUrl+'&modules='+modulesFlag+'" class="jump-btn" >' + temp['menuName'] + '</a></li>';
+		}
+		$('#modulesData').html(html);
+	}
+} 
+var bindHistory=function(){
+	/*异步加载js，并且监听浏览器hash变化，即#后面内容*/
+ 	require.async('js/jquery/jquery.history.min',function(){
+		$.History.bind(function(state) {
+			state=getParameter('url');
+			if (!state) {
+				state=indexHtml;
+				 location.hash=indexHtml;
+				return;
+			} 
+			if(lashHtml==state){
+				return;
+			}
+			$('#menusHtml li .active').removeClass('active');
+			/*如果实际要处理的页面没变，则直接返回*/
+			$.ajax({
+				 url:'/'+state + '.html',
+				 beforeSend: function() {
+					 $('#ajaxLoading').show();
+				 },
+				 success:function(content){
+					 document.getElementById('mainHtml').innerHTML='';
+				     $('#mainHtml').html(content);
+				     var   breadcrumbText;
+				     !KU.navText[state]&&(breadcrumbText=document.getElementById('breadcrumbText'))&&breadcrumbText&&(KU.navText[state]={text:breadcrumbText.value,parent:breadcrumbText.getAttribute('parent')});
+				     if(!KU.navText[state]||!KU.navText[state].parent){
+				    	 $('#menusHtml li.submenu.open > a').trigger('click');
+				     } 
+				     var modulesFlag;
+				      (modulesFlag=getParameter('modules'))&&modulesFlag&&modulesExcute(state,modulesFlag);
+				     var getNavTextArray=KU.getNavTextArray(state);
+				     getNavTextArray.length!=0&&$('#navTextHtml').empty().html(template('navTextTpl',{navTextArray:getNavTextArray})); 
+				     initPlaceHolder();
+				},
+				error: function() {
+					document.getElementById('mainHtml').innerHTML=state+'.html不存在,请检查或联系技术人员';
+				},
+				complete: function() {
+					lashHtml=state;
+					 $('#ajaxLoading').hide();
+				}
+			});
+		});
+		if(location.hash==''){
+			location.hash=indexHtml;
+		}
+	});
+};
+var bindNavMenu=function(){
+	/*监听侧边栏*/
+	var submenus = $('#sidebar li.submenu ul');
+	var submenus_parents = $('#sidebar li.submenu');
+	$('#menusHtml').on('click', 'a[name="showNav"]', function() {
+		var submenu = $(this).siblings('ul');
+		var li = $(this).parents('li');
+		if (li.hasClass('open')) {
+			if (($(window).width() > 768) || ($(window).width() < 479)) {
+				submenu.slideUp();
+			} else {
+				submenu.fadeOut(250);
+			}
+			li.removeClass('open');
+		} else {
+			if (($(window).width() > 768) || ($(window).width() < 479)) {
+				submenus.slideUp();
+				submenu.slideDown();
+			} else {
+				submenus.fadeOut(250);
+				submenu.fadeIn(250);
+			}
+			submenus_parents.removeClass('open');
+			li.addClass('open');
+		}
+
+	});
+	
+	$('#menusHtml').on('click','li[name="navMenu"]',function() {
+		var data=$(this).attr('data');
+//	    if(url!=getParameter('url')){
+			 location.hash=data;
+//	   }
+});
+};
+exports.init=function(){
+	/*显示账号*/
+	$('#accountTopText').html($.cookie(KU.cookieRelative.account));
+	/*初始化导航位置菜单*/
+	KU.navText['changePwd']={text:'修改密码'};
+	KU.navText['notice/unreadNoticeManager']={text:'未读通告'};
+	/*获取权限信息*/
+	KU.send({
+		url:'authorization/roles',
+		eText:'权限信息异常',
+		success:function(data){
+			$('#roles').html(template('rolesTpl',{roles:data.roles}));
+			 $('#ajaxLoading').hide();
+			/*初始化菜单对应的按钮级信息*/
+			KU.roleFunctions=data.functions;
+			/*初始化菜单*/
+	 $('#menusHtml').append(template('menusTpl', 
+		{
+			menus:data.menus,
+			initModule:function(childId,children){/*把三级菜单初始化成module*/
+				   		KU.menuModules[childId]=children;
+				   		/*初始化module的导航*/
+				   		for(var i in children ){
+				   			var obj=children[i];
+							KU.navText[obj.menuUrl]={text:obj.menuName,parent:childId};
+						}
+			 },
+			addNavText:function(url,text,parent){/*初始化当前位置的导航对象*/
+					var  nav={text:text};
+					 if(parent){//如果有上一级，才给上一级
+						 nav['parent']=parent;
+					 }
+					 KU.navText[url]=nav;
+			}
+		}));
+			bindNavMenu();/*绑定菜单按钮*/
+			/*初始化url监听组件*/
+			bindHistory();
+		}
+	});  
+	
+	/*退出账号登录*/
+	$('#logout').on('click',function(){
+		KU.send({
+			url:'authorization/exit',
+			eText:false,
+			type:'DELETE',
+			complete:function(){
+				$.cookie(KU.cookieRelative.authorization,null);
+				$.cookie(KU.cookieRelative.account,null);
+				location.href='login.html';
+				} 
+			});
+		
+	});
+ }
+/*引入dialog组件，即弹出框组件，其它功能不用再次引入*/
+require('pager');
+require('jform');
+require('dPicker');
+require('dialog');
+});

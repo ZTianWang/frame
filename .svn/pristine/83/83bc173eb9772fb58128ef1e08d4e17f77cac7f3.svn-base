@@ -1,0 +1,28 @@
+package com.frame.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.frame.entity.User;
+import com.frame.mapper.UserMapper;
+import com.frame.service.IUserService;
+@Service
+public class UserServiceImpl implements IUserService {
+
+	@Autowired
+	private UserMapper userMapper;// 注入dao
+
+	@Override
+	public void addUser(User user) {
+		 userMapper.insert(user);
+	}
+
+	@Override
+	public List<User> queryUsers() {
+	 
+		return userMapper.queryUsers();
+	}
+
+}

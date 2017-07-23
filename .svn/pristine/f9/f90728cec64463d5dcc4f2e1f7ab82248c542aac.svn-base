@@ -1,0 +1,18 @@
+package com.frame.service;
+ 
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.frame.entity.User;
+import com.frame.mapper.UserMapper;
+import com.frame.service.base.BaseService;
+@Service
+public class UserService extends BaseService<User>{
+	@Autowired
+	private UserMapper userMapper;
+
+	
+ 
+ 
+}

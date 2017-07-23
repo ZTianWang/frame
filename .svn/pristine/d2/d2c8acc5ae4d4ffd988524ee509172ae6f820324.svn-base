@@ -1,0 +1,36 @@
+package com.frame.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.frame.entity.User;
+import com.frame.mapper.UserMapper;
+import com.frame.service.base.BaseService;
+@Service
+public class UserService extends BaseService<User>{
+	@Autowired
+	private UserMapper userMapper;
+
+	public User loadUser(String id){
+		return this.load(id);
+		
+	}
+//	public void addUser(User user) {
+//		 this.add(user);
+//	}
+//
+//	public List<User> queryUsers() {
+//	 
+//		return userMapper.queryUsers();
+//	}
+//	
+//	public void deleteUser(String id){
+//		this.delete("45677");
+//		this.delete("123123123");
+//	}
+	 
+}

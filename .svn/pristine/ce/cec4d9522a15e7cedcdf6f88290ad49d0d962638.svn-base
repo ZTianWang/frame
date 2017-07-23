@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>管理</title>
+<link rel="stylesheet" href="resources/css/theme.css"  />
+</head>
+<body>
+<a  href="#account/add"  id="clickMe">进入account界面</a>&nbsp;<input  type="button"  id="normalDialog"  value="普通窗口"/>
+&nbsp;<input  type="button"  id="modalDialog"  value="模态窗口"/>
+<div    id="mainHTML" style="text-align:center;border: 1px solid #564343;width:100%;height:700px;">
+
+
+
+</div>
+<!-- 页面最后引入js，避免影响页面渲染 -->
+<script  type="text/javascript" src="resources/js/sea.js"></script>
+<script type="text/javascript">
+usejs('main');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,125 @@
+package com.frame.utils.interceptor;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import com.frame.dto.AuthorizationDto;
+import com.frame.service.AuthorizationService;
+import com.frame.utils.Constant;
+import com.frame.utils.HttpCode;
+import com.frame.utils.StringUtil;
+import com.frame.utils.exception.FrameException;
+import com.frame.utils.pager.SystemContext;
+
+public class AuthInterceptor extends HandlerInterceptorAdapter {
+	 private AuthorizationService authorizationService;
+	 private int defaultPageSize=15;
+	@Override
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+			throws Exception {
+		   
+		   String uri=request.getRequestURI();
+		   String method=request.getMethod();
+		   //如果是登录或者上传，则让内部自己处理
+		   if((uri.equals("/authorization")&&method.equals("POST"))||uri.equals("/upload/uploadFile")||uri.matches("^/attachment/record/[0-9a-z]+$")){
+			   return true;
+		   }
+		   //从header中取出登录凭证，此处先简单判断是否为空
+	       String authorization=request.getHeader(Constant.AUTHORIZATION);
+	       String belongMenu=request.getHeader(Constant.BELONG_MENU);
+	       if(StringUtil.isEmpty(authorization)){
+	    	   throw new FrameException("登录失效，请登录",HttpCode.NOT_LOGGED_IN);
+	       }
+	       AuthorizationDto authorizationDto=authorizationService.findAuthorizationDtoByAuthorization(authorization);
+	       if(authorizationDto==null){
+	    	   throw new FrameException("登录失效，请登录",HttpCode.NOT_LOGGED_IN);
+	       }
+	       if(uri.equals("/authorization/roles")){//如果登录之后，获取权限菜单的请求，则直接通过
+	    	   return true;
+	       }
+	       if(!validAuth(uri, belongMenu, authorizationDto.getFunctions(), method)){
+	    	  throw new FrameException("暂无此权限",HttpCode.FORBBIDEN);
+	       }
+	       //集群情况，模拟传统session自动延时
+	       authorizationService.expire(authorization, request.getIntHeader(Constant.DEVICE_TYPE));
+	        
+	       if(uri.endsWith("/page")){
+	        	excutePageInfo(request);
+	        }
+		   return true;
+	}
+	
+	@Override
+	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+			throws Exception {
+		 String uri=request.getRequestURI();
+		  if(uri.endsWith("/page")){
+	        	 removePageInfo();
+	        }
+		   
+	}
+	
+	
+	
+	public   boolean validAuth(String uri,String menu, Map<String, List<Map<String, Object>>> functions, String method) {
+		if(functions==null){
+			    throw new FrameException("暂无此权限",HttpCode.FORBBIDEN);
+		}
+		if (uri.endsWith("/page")) {
+			return functions.containsKey(uri);
+		}
+		List<Map<String, Object>> uriFunctions = functions.get(menu);
+		for (Map<String, Object> map : uriFunctions) {
+			if (map.get("type").equals(method) && uri.matches(map.get("url").toString())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	/**
+	 * 处理分页信息
+	 */
+	public void excutePageInfo(HttpServletRequest req){
+		  Integer offset = 0;
+	        try {
+	            offset = Integer.parseInt(req.getParameter("offset"));
+	        } catch (NumberFormatException e) {
+	        }
+	        String pageSizeStr=req.getParameter("pageSize");
+	        Integer pageSizeParam=defaultPageSize;
+	        if(pageSizeStr!=null){
+	        	 try {
+	        		 pageSizeParam = Integer.parseInt(pageSizeStr);
+	             } catch (NumberFormatException e) {
+	             }
+	        }
+	        SystemContext.setOrder(req.getParameter("order"));
+            SystemContext.setSort(req.getParameter("sort"));
+            SystemContext.setPageOffset(offset);
+            SystemContext.setPageSize(pageSizeParam);
+	}
+	/**
+	 * 删除分页信息
+	 */
+    public void removePageInfo(){
+    	 SystemContext.removeOrder();
+         SystemContext.removeSort();
+         SystemContext.removePageOffset();
+         SystemContext.removePageSize();
+    }
+
+	public void setAuthorizationService(AuthorizationService authorizationService) {
+		this.authorizationService = authorizationService;
+	}
+
+ 
+	public void setDefaultPageSize(int defaultPageSize) {
+		this.defaultPageSize = defaultPageSize;
+	}
+ 
+}

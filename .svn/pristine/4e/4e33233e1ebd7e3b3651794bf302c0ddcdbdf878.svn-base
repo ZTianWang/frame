@@ -1,0 +1,37 @@
+package com.frame.test;
+
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import org.crazycake.utils.CamelNameUtils;
+
+import com.frame.entity.Account;
+import com.frame.utils.ReflectUtil;
+import com.frame.utils.SecurityUtil;
+import com.frame.utils.StringUtil;
+import com.frame.utils.annotation.Version;
+import com.frame.utils.exception.FrameException;
+import com.frame.utils.pager.SystemContext;
+
+public class Test {
+	 
+     
+	
+	public static void main(String[] args) throws Exception {
+	   String str= SecurityUtil.md5("哈哈", "123");
+	   System.out.println(str);
+	   //ff9192ab58cde6c040c1ed2d216b20fa
+	   //ff9192ab58cde6c040c1ed2d216b20fa
+     }
+	 
+//	e99a18c428cb38d5f260853678922e03
+  //e99a18c428cb38d5f260853678922e03
+	  
+   
+}

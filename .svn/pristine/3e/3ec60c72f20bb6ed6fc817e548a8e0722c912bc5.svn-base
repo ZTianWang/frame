@@ -1,0 +1,162 @@
+package com.frame.service.base;
+
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.session.ResultContext;
+import org.apache.ibatis.session.ResultHandler;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.frame.mapper.base.BaseMapper;
+import com.frame.utils.KVMap;
+import com.frame.utils.MyBatisHelper;
+import com.frame.utils.pager.Pager;
+import com.frame.utils.pager.SystemContext;
+public class BaseService<T> {
+
+	@Autowired
+	private BaseMapper<T> baseMapper;
+	private Class<?> clz;
+	@Autowired
+	private    SqlSessionTemplate sqlSession; 
+	
+	private Class<?> getClz() {
+		 
+		if (clz == null) {
+			// 获取泛型的Class对象
+			clz = ((Class<?>) (((ParameterizedType) (this.getClass().getGenericSuperclass()))
+					.getActualTypeArguments()[0]));
+		}
+		return clz;
+	}
+	public void addUser(T entity) {
+        baseMapper.insert(entity);
+	}
+	public void update(T entity) {
+        baseMapper.update(entity);
+	}
+	public void delete(String id) {
+        baseMapper.delete(new KVMap<String,Object>().add("id", id).add("clz", getClz()));
+	}
+	
+	@SuppressWarnings("unchecked")
+	public T load(String  id){
+	    Map<String,Object> resultMap=baseMapper.load(new KVMap<String,Object>().add("id", id).add("clz", getClz()));
+		if(resultMap!=null){
+			try {
+				 T obj = (T)getClz().newInstance();//反射得到泛型对象
+				 MyBatisHelper.copyProp(obj, resultMap);//复制属性
+				 return obj;
+			} catch (InstantiationException | IllegalAccessException e) {
+				 return null;
+			}
+			
+		}
+		return null;
+	}
+	
+	/**
+	 * 必须写条件
+	 * @param condition 条件语句
+	 * @param parameter  对应参数
+	 * @return
+	 */
+	public int count(String condition,KVMap<String, Object> parameter){
+		if(parameter==null){
+			parameter=new KVMap<String,Object>();
+		}
+		if(condition!=null){
+			parameter.add("condition", condition);
+		}
+		parameter.add("clz", getClz());
+		return baseMapper.count(parameter);
+		
+	}
+	
+	
+	/**
+	 * 查询列表,必须跟查询条件和参数，如果条件和参数为空，则返回null
+	 * @param condition  条件语句  1.列名需要和数据库字段名一模一样   2.占位符名 需要和  parameter 中的key一模一样
+	 * @param parameter  K-V参数
+	 * @return 结果集合
+	 */
+	public List<T> findList(String condition,KVMap<String, Object> parameter) {
+		
+		if(parameter==null||condition==null){
+		 return null;
+		}
+		 
+		try{
+			List<T> list=new ArrayList<T>();
+			StringBuilder sql = new StringBuilder("select ");
+			sql.append(MyBatisHelper.selectColumnList(getClz())).append(" from ")
+					.append(MyBatisHelper.getTableName(getClz()));
+			sql.append(" where ").append(condition);
+			parameter.put("sql", sql.toString());
+			sqlSession.select(BaseMapper.class.getName()+".selectList",parameter, new ResultHandler() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public void handleResult(ResultContext context) {
+						try {
+							 Map<String,Object> resultMap=(Map<String, Object>) context.getResultObject();
+							 T  obj = (T)getClz().newInstance();
+							 MyBatisHelper.copyProp(obj, resultMap);
+						     list.add(obj);
+						} catch (InstantiationException | IllegalAccessException e) {
+							return;
+						}
+				}
+			});
+			 return  list.size()!=0?list:null;
+		}catch(Exception e){
+			return null;
+		} 
+		
+	}
+	//=======================
+public Pager<T> findPage(String condition,KVMap<String, Object> parameter) {
+		Pager<T> pager=new Pager<T>();
+		pager.setSize(SystemContext.getPageSize());
+		pager.setOffset(SystemContext.getPageOffset());
+		pager.setTotal(count(condition, parameter));
+		try{
+			List<T> list=new ArrayList<T>();
+			StringBuilder sql = new StringBuilder("select ");
+			sql.append(MyBatisHelper.selectColumnList(getClz())).append(" from ")
+					.append(MyBatisHelper.getTableName(getClz()));
+			if(condition!=null){
+				sql.append(" where ").append(condition);
+			}
+			if(parameter==null){
+				parameter=new KVMap<String,Object>();
+			}
+			sql.append(" limit ").append(SystemContext.getPageOffset()).append(",").append(SystemContext.getPageSize());
+			parameter.put("sql", sql.toString());
+			sqlSession.select(BaseMapper.class.getName()+".selectList",parameter, new ResultHandler() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public void handleResult(ResultContext context) {
+						try {
+							 Map<String,Object> resultMap=(Map<String, Object>) context.getResultObject();
+							 T  obj = (T)getClz().newInstance();
+							 MyBatisHelper.copyProp(obj, resultMap);
+						     list.add(obj);
+						} catch (InstantiationException | IllegalAccessException e) {
+							return;
+						}
+				}
+			});
+			pager.setData(list);
+			 return pager;
+		}catch(Exception e){
+			e.printStackTrace();
+			return pager;
+		} 
+	 
+	}
+ 
+	
+}

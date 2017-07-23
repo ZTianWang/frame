@@ -1,0 +1,23 @@
+package com.frame.mapper.base;
+
+import java.util.Map;
+
+import org.apache.ibatis.annotations.DeleteProvider;
+import org.apache.ibatis.annotations.InsertProvider;
+import org.apache.ibatis.annotations.UpdateProvider;
+
+
+
+
+public interface BaseMapper<T> {
+	@InsertProvider(type = MapperTemplate.class, method = "insert")
+	public   void insert(T entity);
+
+	@DeleteProvider(type = MapperTemplate.class, method = "delete")
+	public void delete(Map<String, Object> parameter);
+
+	@UpdateProvider(type = MapperTemplate.class, method = "update")
+	public   void update(T obj);
+	
+ 
+}

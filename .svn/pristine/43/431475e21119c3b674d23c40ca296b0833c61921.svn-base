@@ -1,0 +1,49 @@
+define(function(require, exports, module) {
+	
+var bindHistory=function(){
+ 	require.async('js/jquery/jquery.history.min',function(){
+		$.History.bind(function(state) {
+			if (state) {
+				var q = state.indexOf('?');
+				if (q != -1) {
+					state = state.substring(0, q);
+				}
+				$.ajax({
+					 url:'/' + state + '.html',
+					 beforeSend: function() {
+						 $('body').append("<div id=\"stateLoading\"   class=\"loading\"></div>");
+					 },
+					 success:function(content){
+						document.getElementById('mainHtml').innerHTML='';
+					    $('#mainHtml').html(content);;
+						
+					},
+					error: function() {
+						newsHint('页面可能被修改，请重试');
+					},
+					complete: function() {
+					   $('#stateLoading').remove();
+					}
+				});
+			} 
+		});
+	});
+}	
+
+exports.init=function(){
+	/*获取权限信息*/
+	KU.send({
+		url:'authorization/roles',
+		eText:'权限信息异常',
+		cache:true,
+		success:function(data){
+			/*初始化菜单对应的按钮级信息*/
+			 window.roleFunctions=data.functions;
+			/*初始化url监听组件*/
+			bindHistory();
+			/*初始化菜单*/
+			$('#menusHtml').html(template('menusTpl', {menus:data.menus}));
+		}
+	});  
+ }
+});

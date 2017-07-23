@@ -1,0 +1,9 @@
+package com.frame.dao;
+
+import com.frame.domain.User;
+
+public interface  UserMapper {
+	
+	public  int insert(User user);
+
+}

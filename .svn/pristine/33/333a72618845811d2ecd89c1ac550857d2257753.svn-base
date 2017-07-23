@@ -1,0 +1,51 @@
+package com.frame.utils;
+
+
+/**
+ * 自定义状态码
+ */
+public class HttpCode {
+	/**
+	 * 成功
+	 */
+	public static final int SUCCESS = 200;
+	/**
+	 * 失败
+	 */
+	public static final int FAILURE = 500;
+
+	/**
+	 * version不匹配
+	 */
+	public static final int VERSION_MATCH = 412;
+	/**
+	 * 无效参数
+	 */
+	public static final int INVALID_PARAMETER = 400;
+	/**
+	 * 权限错误
+	 */
+	public static final int FORBBIDEN = 401;
+	
+	/**
+	 * 未登录
+	 */
+	public static final int NOT_LOGGED_IN = 402;
+	
+	/**
+	 * 数据不存在
+	 */
+	public static final int NOT_FOUND = 404;
+
+	/**
+	 * 数据已存在
+	 */
+	public static final int RECORD_EXISTS = 406;
+
+	/**
+	 * 无效请求
+	 */
+	public static final int INVALID_OPERATION = 405;
+	
+
+}

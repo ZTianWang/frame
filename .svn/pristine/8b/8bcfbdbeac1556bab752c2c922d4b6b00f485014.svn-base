@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.frame.mapper.MenusMapper">
+	<select id="findMenuFunctionByAccountId" resultType="menuFunctionDto">
+		select   distinct
+		m.sort_num menu_sort_num,father.sort_num
+		father_sort_num,grandpa.sort_num grandpa_sort_num,mf.sort_num
+		function_sort_num,
+		m.id menu_id,m.name menu_name,m.url menu_url,mf.name
+		function_name,mf.flag,mf.url function_url,mf.type,
+		father.id
+		father_id,father.name father_name,father.icon father_icon,grandpa.id
+		grandpa_id,grandpa.name grandpa_name,grandpa.icon grandpa_icon
+		from
+		account_role ar
+		inner join role_function rf on ar.role_id=rf.role_id
+		left join menu_function mf on mf.id=rf.function_id
+		left join menu m on
+		m.id=mf.menu_id
+		left join menu father on father.id=m.parent_id
+		left join
+		menu grandpa on grandpa.id= father.parent_id
+		where
+		ar.account_id=#{accountId}
+	</select>
+
+
+	<select id="findRoleInfoByAccountId" resultType="map">
+		select
+		r.id,r.name from account_role ar inner join role r on ar.role_id=r.id
+		where ar.account_id=#{accountId}
+	</select>
+	<!-- 编辑角色时，选择角色拥有的菜单和方法时使用 -->
+	<select id="findFewAboutMenuFunctionByAccountId" resultType="menuFunctionDto">
+		select m.sort_num menu_sort_num,father.sort_num
+		father_sort_num,grandpa.sort_num grandpa_sort_num,mf.sort_num
+		function_sort_num, m.id menu_id,m.name menu_name,father.id
+		father_id,father.name father_name,grandpa.id grandpa_id,
+		grandpa.name
+		grandpa_name,rf.function_id function_id,mf.name function_name
+		,ar.role_id role_id
+		from account_role ar
+		inner join role_function rf on
+		ar.role_id= rf.role_id
+		left join menu_function mf on
+		mf.id=rf.function_id
+		left join menu m on m.id=mf.menu_id
+		left join menu
+		father on father.id=m.parent_id
+		left join menu grandpa on grandpa.id=
+		father.parent_id
+		where
+		ar.account_id=#{accountId}
+	</select>
+	<insert id="createRoleFunction">
+		insert into role_function(id,role_id,function_id,create_date)values
+		<foreach item="item" collection="list" separator=",">
+			(#{item.id},#{item.roleId},#{item.functionId},#{item.createDate})
+		</foreach>
+	</insert>
+	<delete id="deleteRoleFunction">
+		delete from role_function where
+		<foreach item="item" collection="list" separator="or">
+			(role_id=#{item.roleId} and function_id=#{item.functionId})
+		</foreach>
+	</delete>
+</mapper>

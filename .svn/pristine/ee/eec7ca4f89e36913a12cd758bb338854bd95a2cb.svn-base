@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>登录页面</title>
+<link rel="stylesheet" href="resources/css/theme.css"  />
+<style>
+ 
+#center {
+	MARGIN-RIGHT: auto;
+	MARGIN-LEFT: auto;
+	height: 200px;
+	width: 400px;
+	vertical-align: middle;
+}
+</style>
+</head>
+<body>
+	<div id="center">
+		<input type="text" id="account"   value="alfred"/><br /> 
+		<input type="text" id="password"   value="990448338"/><br /> 
+		<input type="button" id="login" value="登录" />
+	</div>
+
+
+<script type="text/javascript" src="resources/js/sea.js"></script>
+<script type="text/javascript">
+seajs.use('login',function(login){
+	login.init();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+package com.frame.dto;
+
+public class AuthorizationDto {
+	private String account;
+	private String authorization;
+
+	public String getAccount() {
+		return account;
+	}
+
+	public void setAccount(String account) {
+		this.account = account;
+	}
+
+	public String getAuthorization() {
+		return authorization;
+	}
+
+	public void setAuthorization(String authorization) {
+		this.authorization = authorization;
+	}
+
+}

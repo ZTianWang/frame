@@ -1,0 +1,42 @@
+<div class="widget-content" style="margin: -19px;">
+	<!-- 查询条件开始 -->
+	<div class="form-horizontal">
+		<form>
+			<table class="container text-left container-table">
+				<tbody>
+					<tr>
+						<td> <input type="text" placeholder="角色名称"  id="selectRolesDialogRoleName" /> <input type="button" class="input-buttom btn btn-primary ml" id="selectRolesDialogSearchBtn" value="查询" /> </td>
+					</tr>
+				</tbody>
+			</table>
+		</form>
+	</div>
+	<!--查询条件结束-->
+	<table class="table table-striped table-list table-hover">
+		<thead>
+			<tr>
+				<th>序号</th>
+				<th>角色名称</th>
+				<th>创建时间</th>
+				<th>操作</th>
+			</tr>
+		</thead>
+		<tbody id="selectRolesDialogResultTable">
+		</tbody>
+		<tfoot class="table-footer">
+			<tr>
+				<td colspan="4" id="selectRolesDialogPager"></td>
+			</tr>
+		</tfoot>
+	</table>
+</div>
+<script type="text/html" id="selectRolesDialogListTpl">
+  {{each data as role i}}
+       <tr>
+            <td>{{i+1+offset}}</td>
+            <td>{{role.name}}</td>
+            <td>{{role.createDate}}</td>
+            <td><input type="checkbox"  {{initChecked(role.id)}}  selectRoleId="{{role.id}}"  selectRoleName="{{role.name}}" /> </td>
+        </tr>
+  {{/each}}
+    </script>

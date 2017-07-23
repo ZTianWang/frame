@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>管理</title>
+<link rel="stylesheet" href="resources/css/theme.css"  />
+</head>
+<body>
+<div    id="menusHtml" style="border: 1px solid #564343;width:19.5%;height:620px;float:left">
+正在加载...
+</div>
+<div    id="mainHtml" style="border: 1px solid #564343;width:80%;height:620px;float:right">
+正在加载...
+</div>
+<!-- 页面最后引入js，避免影响页面渲染 -->
+<script type="text/html"  id="menusTpl">
+ {{each menus as menu}}
+     <h2>{{menu.menuName}}</h2>
+         {{if menu.children}}
+                 {{each menu.children as child}}
+                  <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a  href="#{{child.url}}">{{child.menuName}}</a></h3> 
+                 {{/each}}
+          {{/if}}
+{{/each}}
+   
+</script>
+<script  type="text/javascript" src="resources/js/sea.js"></script>
+<script type="text/javascript">
+seajs.use('main',function(main){
+	main.init();
+});
+</script>
+
+</body>
+</html>

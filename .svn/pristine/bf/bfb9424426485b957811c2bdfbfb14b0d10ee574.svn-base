@@ -1,0 +1,61 @@
+<br/>
+&nbsp;手机号:<input  type="text"  id="cellPhone"    />&nbsp;&nbsp;&nbsp;邮箱:<input   type="text"  id="email"    /> &nbsp;
+开始日期:<input type="text" class="Wdate"   name="startDate" id="startDate"  readonly="readonly" onclick="WdatePicker({maxDate:'#F{$dp.$D(\'endDate\')}'})"/>&nbsp;
+结束日期:<input type="text" class="Wdate"   name="endDate" id="endDate"  readonly="readonly"  onclick="WdatePicker({minDate:'#F{$dp.$D(\'startDate\')}'})"/><br/> <br/>
+&nbsp;&nbsp;账号:<input  type="text"  id="account"    />
+&nbsp;&nbsp;&nbsp;&nbsp;<input type="button"  id="searchBtn"  value="查询"/> &nbsp;&nbsp;&nbsp;&nbsp;<span  id="addBtnHtml"></span>
+ 
+
+
+<table class="table table-list">
+	<thead>
+		<tr>
+			<th>账号</th>
+			<th>手机号</th>
+			<th>邮箱</th>
+			<th>创建时间</th>
+			<th>操作</th>
+		</tr>
+	</thead>
+	<tbody id="resultTable">
+	</tbody>
+	<tfoot class="table-footer">
+		<tr>
+			<td colspan="5" id="pager"></td>
+		</tr>
+	</tfoot>
+</table>
+
+<script type="text/html" id="listTpl">
+      {{if total>0 }}
+  {{each data as account}}
+       <tr>
+            <td>{{account.account}}</td>
+            <td>{{account.cellPhone}}</td>
+			<td>
+{{if account.email.indexOf('@163.com')!=-1}}
+						{{account.email}}网易邮箱
+					{{else if account.email.indexOf('@qq.com')!=-1}}
+						{{account.email}}腾讯邮箱
+					{{else}}
+                               {{account.email}}
+                	{{/if}}
+</td>
+            <td>{{account.createDate}}</td>
+ <td>
+ <!--隐藏域，id为本条数据的id，放置一些需要用到的属性-->
+<input  type="hidden"  id="{{account.id}}" cellPhone="{{account.cellPhone}}"  email="{{account.email}}" account="{{account.account}}"  />
+ <!--动态显示用户真正拥有的按钮，根据属性accountId，可以得到本条信息的隐藏域，然后可以得到隐藏域上预置的一些信息-->
+    {{each functionBtns as fun}}
+       <input  type="button"  key="{{account.id}}" class="accountFunBtn"   value="{{fun.name}}"  flag="{{fun.flag}}"  />
+   {{/each}}
+</td>
+        </tr>
+  {{/each}}
+  {{/if}}
+    </script>
+<script type="text/javascript">
+seajs.use('account/list',function(list){
+	list.init();
+});
+</script>

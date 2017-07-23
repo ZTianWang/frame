@@ -1,0 +1,170 @@
+define(function(require, exports, module) {
+	var indexHtml='current=/index&'+KU.belongTo+'=/index';//默认index
+	var lashHtml;
+	var $breadcrumb=$('#breadcrumb');//导航条目
+	var $breadcrumb1= $breadcrumb.find('a:eq(1)');
+	var $breadcrumb2= $breadcrumb.find('a:eq(2)');
+var modulesExcute=function(currentUrl,belongToMenuUrl){
+	var modules=(belongToMenuUrl&&currentUrl)?KU.menuModules[belongToMenuUrl]:null;
+	if(modules){
+		var html='';
+		for(var i in modules){
+			var temp=modules[i];
+			html += '<li class="' + (temp['url']==currentUrl?(active='active'):'') + '"><a href="javascript:void(0)"  url="current=' + temp['url'] + '&'+KU.belongTo+'='+belongToMenuUrl+'" class="jump-btn" >' + temp['menuName'] + '</a></li>';
+		}
+		$("#modulesData").empty().html(html);
+	}
+} 
+var bindHistory=function(){
+	/*异步加载js，并且监听浏览器hash变化，即#后面内容*/
+ 	require.async('js/jquery/jquery.history.min',function(){
+		$.History.bind(function(state) {
+			$breadcrumb1.hide();
+			$breadcrumb2.hide();
+			state=getParameter('current');
+			if (state==null) {
+				state=indexHtml;
+				window.location.hash=indexHtml;
+				return;
+			} 
+			var belongTo=getParameter(KU.belongTo);
+			if(belongTo){
+				var $currentMenu=$('#'+getParameter(KU.belongTo).replace(/\//g, ''));
+				if($currentMenu.length>0){
+					var pName=$currentMenu.attr('pName');
+					var cName=$currentMenu.attr('cName');
+					if(pName&&cName){
+						$breadcrumb1.show().find('.level').text(pName);
+						$breadcrumb2.show().find('.level').text(cName);
+					}else{
+						$breadcrumb2.show().find('.level').text('当前');
+					}
+				}else{
+					$breadcrumb2.show().find('.level').text('当前');
+				}
+				
+				/*刷新时正确处理菜单的显示*/
+				if($currentMenu.length>0&&!$currentMenu.hasClass('active')){
+					$('#menusHtml li .active').removeClass('active');
+					$currentMenu.addClass('active'); 
+					var $showNav=$currentMenu.parent().prev();
+					if(!$showNav.parent().hasClass('open')){
+						$showNav.trigger('click');
+					}
+				}
+			}else{
+				$breadcrumb2.show().find('.level').text('当前');
+			}
+			/*如果实际要处理的页面没变，则直接返回*/
+			if(lashHtml==state){
+				var  currentJs=require(state);
+			    if(currentJs&&currentJs.hashChange){
+			    	currentJs.hashChange();
+			    }
+				return;
+			}
+			$.ajax({
+				 url:state + '.html',
+				 beforeSend: function() {
+					 $('#ajaxLoading').show();
+				 },
+				 success:function(content){
+					document.getElementById('mainHtml').innerHTML='';
+				    $('#mainHtml').html(content);
+				    modulesExcute(state,belongTo);
+				    initPlaceHolder();
+				},
+				error: function() {
+//					newsHint('页面可能被修改，请重试');
+					document.getElementById('mainHtml').innerHTML='';
+				    $('#mainHtml').html(state+'.html不存在,请检查或联系技术人员');
+				},
+				complete: function() {
+					lashHtml=state;
+					 $('#ajaxLoading').hide();
+				}
+			});
+		});
+	});
+};
+var bindNavMenu=function(){
+	/*监听侧边栏*/
+	$('#menusHtml').on('click', 'a[name="showNav"]', function() {
+		var submenu = $(this).siblings('ul');
+		var li = $(this).parents('li');
+		var submenus = $('#sidebar li.submenu ul');
+		var submenus_parents = $('#sidebar li.submenu');
+		if (li.hasClass('open')) {
+			if (($(window).width() > 768) || ($(window).width() < 479)) {
+				submenu.slideUp();
+			} else {
+				submenu.fadeOut(250);
+			}
+			li.removeClass('open');
+		} else {
+			if (($(window).width() > 768) || ($(window).width() < 479)) {
+				submenus.slideUp();
+				submenu.slideDown();
+			} else {
+				submenus.fadeOut(250);
+				submenu.fadeIn(250);
+			}
+			submenus_parents.removeClass('open');
+			li.addClass('open');
+		}
+
+	});
+	
+	$('#menusHtml').on('click','li[name="navMenu"]',function() {
+		var url=$(this).attr('url');
+	if(url!=getParameter('current')){
+		    $('#menusHtml li .active').removeClass('active');
+		    $(this).addClass('active');
+			window.location.hash='current='+url+'&'+KU.belongTo+'='+url;
+	}
+	});
+};
+
+ 
+exports.init=function(){
+	/*显示账号*/
+	$('#accountText').html($.cookie(KU.cookieRelative.account));
+	/*获取权限信息*/
+	KU.send({
+		url:'authorization/roles',
+		eText:'权限信息异常',
+		cache:true,
+		success:function(data){
+			 $('#ajaxLoading').hide();
+			/*初始化菜单对应的按钮级信息*/
+			KU.roleFunctions=data.functions;
+			/*初始化菜单*/
+			$('#menusHtml').append(template('menusTpl', {menus:data.menus,initModule:function(menusUrl,children){
+				 KU.menuModules[menusUrl]=children;
+			}}));
+			bindNavMenu();/*绑定菜单按钮*/
+			/*初始化url监听组件*/
+			bindHistory();
+			$('#roles').html(template('rolesTpl',{roles:data.roles}));
+		}
+	});  
+	
+	/*退出账号登录*/
+	$('#logout').on('click',function(){
+		KU.send({
+			url:'authorization/exit',
+			complete:function(){
+				$.cookie(KU.cookieRelative.authorization,null);
+				$.cookie(KU.cookieRelative.account,null);
+				target('login.html');
+				}
+			});
+	});
+	
+	if(window.location.hash==''){
+		window.location.hash=indexHtml;
+	}
+ }
+/*引入dialog组件，即弹出框组件，其它功能不用再次引入*/
+require('dialog');
+});

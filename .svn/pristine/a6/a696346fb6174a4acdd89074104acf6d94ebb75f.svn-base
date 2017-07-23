@@ -1,0 +1,49 @@
+package com.frame.utils.listener;
+
+
+import java.util.ResourceBundle;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+
+import com.frame.utils.ftp.FTPUtil;
+import com.frame.utils.idworker.IdUtil;
+
+
+public class InitListener implements ApplicationListener<ContextRefreshedEvent>  {
+	private static Logger logger = LoggerFactory.getLogger(InitListener.class);
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		 //防止启动两次
+		 if(event.getApplicationContext().getParent() == null){
+			 ResourceBundle resource = ResourceBundle.getBundle("config");
+		    //初始化ftp连接池
+			 initIdWorker(resource);
+			 initFtpListener(resource);
+	      }
+		
+	}
+	
+	public void initIdWorker(ResourceBundle resource){
+		
+		 try {
+			 new IdUtil().initIdWorker(resource);
+				logger.info("==========================IdWorker初始化成功==========================");
+			} catch (Exception e) {
+				logger.warn("==========================IdWorker初始化成功==========================", e);
+			}
+	}
+	
+	public  void initFtpListener(ResourceBundle resource){
+	 try {
+	
+		new FTPUtil().initFTPPool(resource);
+		logger.info("==========================FTP初始化成功==========================");
+	} catch (Exception e) {
+		logger.warn("==========================FTP初始化失败==========================", e);
+	}
+	}
+
+}

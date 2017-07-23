@@ -1,0 +1,107 @@
+define(function(require, exports) {
+	require('jvalid');// 引入jquery校验组件
+	require('jform');/* 引入jqueryForm相关js */
+	var rules = {
+		account : {
+			required : true,
+			requiredText : '账号不能为空',
+			maxlength : 15,
+			maxlengthText : '最长{0}个字符',
+		},
+		password : {
+			required : true,
+			maxlength : 12,
+			maxlengthText : '最长{0}个字符',
+		},
+		password_again : {
+			equalTo : "#password",
+		},
+		cellPhone : {
+			required : true,
+			mobile : true
+		},
+		email : {
+			required : true,
+			email : true
+		}
+	};
+	
+	/* 页面初始化方法 */
+	exports.init = function() {
+		/*先把参数id放进隐藏域，后续处理时，如果隐藏域内容为空，则说明是新增，否则就是修改*/
+	var accountId=getParameter('accountId');
+	    if(accountId){/*如果是编辑*/
+	    	  rules.password.required=false;
+	    	$('#accountId').val(accountId);
+	    	/*回显内容*/
+	    	  KU.send({ 
+				  url:'account/'+accountId,
+				  eText:{500:'数据回显错误，请重试'},
+			      success:function(data){ 
+			    	 $('#account').val(data.account).attr('readonly','readonly');
+			    	 $('#cellPhone').val(data.cellPhone);
+			    	 $('#email').val(data.email);
+			     } 
+			}); 
+	    }
+		/*初始化加载校验组件及操作*/
+		$('#accountForm').validForm(
+				rules,
+				function(form) {
+					var formJson = $("#accountForm").serializeJson(
+							[ 'password_again', 'accountHeadFile' ]);
+						formJson['accountHeadFile'] = $(
+								'input[name="accountHeadFile"]').arrayVal();
+						KU.send({
+							url : 'account'+(accountId?'/'+accountId:''),
+							type : accountId?'PUT':'POST',
+							data : formJson,
+							success : function(data) {
+								window.history.go(-1);
+							}
+						});
+
+				},
+				function(){//如果校验失败，则恢复提交按钮的启用
+					$('#accountSubmitBtn').removeAttr('disabled');
+				}
+				);
+
+		/**
+		 * 初始化加载上传组件及操作
+		 */
+		require.async('js/uploadify', function() {
+			if(accountId){//如果是编辑，则获取拥有的附件，然后回显，
+			      KU.send({ 
+					  url:'attachment/record/'+accountId,
+					  eText:'加载附件失败',
+				      success:function(data){ 
+				    	  /*初始化头像上传*/
+				    	KU.renderFileTpl({ 
+				    	     attList:data['0'],
+				             btnId:'accountHead', 
+				             recordId:accountId,
+				             fileType:0
+				            });
+				    	KU.renderFileTpl({ 
+				    	     attList:data['1'],
+				             btnId:'idCard', 
+				             recordId:accountId,
+				             fileType:1
+				            });
+				  } 
+				});  
+			}else{//否则绑定上传组件
+				KU.renderFileTpl({ 
+		             btnId:'accountHead', 
+		             fileType:0
+		            });
+				KU.renderFileTpl({ 
+		             btnId:'idCard', 
+		             fileType:1
+		          });
+			}
+			
+		});
+	}
+});

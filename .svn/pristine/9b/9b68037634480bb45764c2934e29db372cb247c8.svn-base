@@ -1,0 +1,34 @@
+package com.frame.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.frame.entity.User;
+import com.frame.mapper.UserMapper;
+import com.frame.service.base.BaseService;
+import com.frame.utils.exception.FrameException;
+
+@Service
+public class UserService extends BaseService<User> {
+	@Autowired
+	private UserMapper userMapper;
+
+	public List<User> findUsers() {
+		return userMapper.findUsers(null);
+	}
+
+	public int add() {
+		User user = new User();
+		user.setUserName("09123");
+		userMapper.insert(user);
+		user.setUserName("9991");
+		add(user);
+ 
+		return 0;
+
+	}
+
+}

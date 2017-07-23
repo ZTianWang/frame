@@ -1,0 +1,7 @@
+define(function(require,exports) {
+	var functions={};
+	exports.init=function(functionsData){
+		functions=functionsData;
+	}
+	
+});

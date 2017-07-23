@@ -1,0 +1,48 @@
+package com.frame.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.frame.dto.UserDto;
+import com.frame.entity.User;
+import com.frame.service.UserService;
+import com.frame.utils.pager.Pager;
+
+@Controller
+@RequestMapping("/user")
+public class UserController {
+
+	@Autowired
+	private UserService userService;
+ 
+	@RequestMapping("/list")
+	public String userList(Model model)     {
+		Pager<User> pager=userService.findPage(null, null);
+		model.addAttribute("pager", pager);
+		return "index";
+	}
+	
+	@RequestMapping("/add")
+	public void add(Model model)  {
+	 
+	}
+	
+ 
+	/**
+	 * 
+	 * @param ud  使用@RequestBody 直接根据json内容，绑定object，前端请求时，Content-Type 必须为application/json
+	 * @return
+	 */
+	@RequestMapping(value="/find")
+	@ResponseBody
+	public List<User> findUsers() {
+		return userService.findUsers();
+		 
+	}
+}

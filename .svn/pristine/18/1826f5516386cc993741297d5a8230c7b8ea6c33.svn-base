@@ -1,0 +1,7 @@
+ftp.host=127.0.0.1
+ftp.port=21
+ftp.userName=990448338
+ftp.password=990448338
+ftp.encoding=UTF-8
+ftp.clientTimeout=3000
+ftp.poolSize=1

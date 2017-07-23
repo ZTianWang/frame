@@ -1,0 +1,83 @@
+define(function(require, exports) {
+	require('jvalid');// 引入jquery校验组件
+	require('jform');/* 引入jqueryForm相关js */
+	var rules = {
+		account : {
+			required : true,
+			requiredText : '账号不能为空',
+			maxlength : 15,
+			maxlengthText : '最长{0}个字符',
+		},
+		password : {
+			required : true,
+			maxlength : 12,
+			maxlengthText : '最长{0}个字符',
+		},
+		password_again : {
+			equalTo : "#password",
+		},
+		cellPhone : {
+			required : true,
+			mobile : true
+		},
+		email : {
+			required : true,
+			email : true
+		}
+	};
+	/* 页面初始化方法 */
+	exports.init = function() {
+		/*初始化加载校验组件及操作*/
+		$('#accountForm').validForm(
+				rules,
+				function(form) {
+					var formJson = $("#accountForm").serializeJson(
+							[ 'password_again', 'accountHeadFile' ]);
+					require.async('js/jquery/jquery.md5', function() {
+						formJson['password'] = $.md5($
+								.md5(formJson['password']));
+						formJson['accountHeadFile'] = $(
+								'input[name="accountHeadFile"]').arrayVal();
+						KU.send({
+							url : 'account',
+							type : 'POST',
+							data : formJson,
+							success : function(data) {
+								showHtml('/account/list');
+							}
+						});
+					});
+
+				});
+
+		/**
+		 * 初始化加载上传组件及操作
+		 */
+		require.async('js/uploadify', function() {
+			var btnId = 'accountHead';
+			$('#' + btnId).uploadify({
+				onSWFReady : function() {
+					$('#startAccountHeadUpload').on('click', function() {
+						$('#' + btnId).uploadify('upload', '*');
+					});
+                      KU.send({ 
+						  url:'attachment/record/666',
+						  eText:'加载附件失败',
+					     success:function(data){ 
+					    	 var result={ attList:data,
+					             iniId:btnId, 
+					             calcSize:KU.calcSize,
+					             };
+					   if(result.attList&&result.attList.length>=2){
+					        $('#'+btnId).uploadify('disable', true); 
+					     } 
+					     var render=template.compile(require('resources/uploadTpl.html'));
+					     var html=render(result);
+					    $('#'+btnId+'-queue').append(html); 
+					  } 
+					});  
+				}
+			});
+		});
+	}
+});

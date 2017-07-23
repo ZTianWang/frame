@@ -1,0 +1,12 @@
+package com.frame.entity;
+
+import com.frame.entity.base.BaseEntity;
+
+public class Card extends BaseEntity{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+}

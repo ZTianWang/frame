@@ -1,0 +1,20 @@
+<link rel="stylesheet" href="resources/css/upload.css" />
+<div>
+<form  id="accountForm"  name="accountForm">
+<input type="text" id="accountId" name="accountId" /></br>
+用户名:<input type="text" id="account"  name="account" /><br/>
+密码:<input type="text"   id="password"  name="password"><br/>
+请再次输入密码:<input type="text"   id="password_again"  name="password_again"><br/>
+手机号:<input  type="text"  id="cellPhone" name="cellPhone"></br/>
+邮箱:<input  type="text"  id="email"  name="email"></br/>
+<input id="startAccountHeadUpload"  name="startAccountHeadUpload"  value="开始上传"  type="button"/>
+<input id="accountHead" name="accountHead"  type="file"/>
+
+<input  type="submit"  value="提交"/>
+</form>
+</div>
+<script type="text/javascript">
+seajs.use('account/edit',function(edit){
+	edit.init();
+});
+</script>

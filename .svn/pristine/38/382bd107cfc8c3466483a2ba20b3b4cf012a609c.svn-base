@@ -1,0 +1,12 @@
+package com.frame.mapper;
+
+import java.util.List;
+
+import com.frame.entity.User;
+import com.frame.mapper.base.BaseMapper;
+import com.frame.utils.KVMap;
+
+public interface  UserMapper {
+ 
+ 
+}

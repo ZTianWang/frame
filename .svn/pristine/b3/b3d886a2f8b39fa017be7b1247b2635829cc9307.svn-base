@@ -1,0 +1,44 @@
+<span id="roleName" style="margin-left: 200px;"></span>&nbsp;&nbsp;<input type="button" id="saveRoleEditMenusFunctionsBtn"  class="btn btn-success" value="保存"/>
+<!-- 简单粗暴先来个简单ui，主要是在js上 -->
+<div style="margin-left: 200px; margin-top: 20px;" id="roleEditMenusFunctionsHtml">
+	正在加载相关菜单...
+</div>
+<script type="text/html" id="roleEditMenusFunctionsTpl">
+ {{each items as item}}
+       <div style="margin-top: 5px;" >
+           <input type="checkbox"  id="{{item.menuId}}" value="{{item.menuName}}"/>{{item.menuName}}
+       </div>
+          {{each item.children as child}}
+            <div  style="margin-left: 50px;margin-top: 5px;">
+               <input type="checkbox"  id="{{child.menuId}}"  value="{{child.menuName}}" parentId="{{item.menuId}}" /> {{child.menuName}}
+            </div>
+<!---判断处理三级菜单，即module菜单---->
+         {{if child.children}}
+            {{each child.children as menuModule}}          
+           <div style="margin-left: 80px;">
+		<input type="checkbox"   id="{{menuModule.menuId}}"  value="{{menuModule.menuName}}" parentId="{{child.menuId}}"    />{{menuModule.menuName}}
+	   </div>
+     	<span style="margin-left: 100px;">
+          {{each menuModule.functions as fun}}
+		   <input type="checkbox"   class="fun"  functionId="{{fun.functionId}}" value="{{fun.functionName}}" parentId="{{menuModule.menuId}}"  {{initChecked(fun.functionId,fun.checked,menuModule.menuId)}}/>{{fun.functionName}} &nbsp;
+            {{/each}}
+	    </span>
+         {{/each}}
+        
+        {{else}}
+            <span style="margin-left: 80px;">
+              {{each child.functions as fun}}
+		       <input type="checkbox" class="fun" functionId="{{fun.functionId}}"   value="{{fun.functionName}}"  parentId="{{child.menuId}}" {{initChecked(fun.functionId,fun.checked,child.menuId)}} />{{fun.functionName}} &nbsp;
+             {{/each}}
+	           </span>
+		 {{/if}}  
+      {{/each}}
+ {{/each}}
+</script>
+
+<input type="hidden" id="breadcrumbText" parent="role/manager" value="编辑" />
+<script type="text/javascript">
+	seajs.use('role/edit', function(edit) {
+		edit.init();
+	});
+</script>

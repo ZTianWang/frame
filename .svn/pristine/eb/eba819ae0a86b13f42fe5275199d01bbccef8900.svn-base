@@ -1,0 +1,28 @@
+package com.frame.utils;
+
+public class StringUtil {
+	   public static final char UNDERLINE='_';
+	   /**
+	    * 转换字符串为sql语句时使用此方法
+	    * @param param
+	    * @return
+	    */
+	    public static String camel2underline(String param){
+	        int len=param.length();
+	        StringBuilder sb=new StringBuilder(len);
+	        boolean flag=true;
+	        for (int i = 0; i < len; i++) {
+	            char c=param.charAt(i);
+	            if(c=='{')flag=false;else if(c=='}')flag=true;
+	            	  if (flag&&Character.isUpperCase(c)){
+	  	                sb.append(UNDERLINE);
+	  	                sb.append(Character.toLowerCase(c));
+	  	            }else{
+	  	                sb.append(c);
+	  	            }
+	          
+	          
+	        }
+	        return sb.toString();
+	    }
+}

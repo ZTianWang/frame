@@ -1,0 +1,17 @@
+###ftp配置信息开始
+ftp.host=127.0.0.1
+ftp.port=21
+ftp.userName=990448338
+ftp.password=990448338
+ftp.encoding=UTF-8
+ftp.clientTimeout=3000
+ftp.poolSize=1
+ftp.upload.dir=upload/
+###ftp配置信息结束
+###全局唯一表示生成策略 开始  考虑集群和分布式，，模仿Twitter的机制
+##当集群的应用服务器小于等于31节点时，从零开始，依次递增1设置每台服务器配置文件的workerId，datacenterId不变
+##当应用服务器超过31节点或为31倍数时，每次倍数时，递增1,改变datacenterId的值，改变之后，workerId又可以从0开始递增设置
+##********概括一句：workerId,datacenterId 范围必须大于等于0，小于等于31，全局服务器节点上，二者联合必须唯一，足够使用*******
+idWorker.workerId=0
+idWorker.datacenterId=0
+###全局唯一表示生成策略 结束

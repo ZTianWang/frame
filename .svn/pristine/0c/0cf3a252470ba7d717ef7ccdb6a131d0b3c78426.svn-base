@@ -1,0 +1,94 @@
+/**
+ * jquery处理form的相关js
+ */
+define(function(require,exports, module) {
+  
+  /*封装jquery校验，方便调用时尽可能少的写参数*/
+  $.fn.validForm = function(rules,submitHandler,invalidHandler) {
+    var rulesArray = {}; // 组装校验信息
+    var messagesText = {}; // 组装提示信息
+    for (attrName in rules) {
+      var attr = rules[attrName];
+      messagesText[attrName] = {};
+      rulesArray[attrName] = {};
+      for (attrChild in attr) {
+        if (attrChild.indexOf('Text') == -1) {
+          messagesText[attrName][attrChild] = attr[attrChild + 'Text'];
+          rulesArray[attrName][attrChild] = attr[attrChild];
+        }
+
+      }
+    }
+   var defaultOpts={
+           onfocusout: function(element) {
+             $(element).valid();
+           },
+           rules: rulesArray,
+           messages: messagesText,
+             errorElement: 'span',
+             /*highlight: function(element, errorClass) {
+            // $(element).next('em').addClass(errorClass);
+           },*/
+          submitHandler: submitHandler,
+          invalidHandler:invalidHandler
+   };
+    $.fn.validate.call(this,defaultOpts);
+  };
+  /*$("#form").serializeJson()
+   *@exceptParam  直接指定不进行序列化的参数   格式如$("#form").serializeJson(['storeName','age']) 
+   **/
+  $.fn.serializeJson = function(exceptParam) {
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function() {
+      if(exceptParam&&$.inArray(this.name,exceptParam)!=-1){
+        //如果是排除的参数，则return
+        return;
+      }
+      
+      if (o[this.name] !== undefined) {
+        if (!o[this.name].push) {
+          o[this.name] = [o[this.name]];
+        }
+        o[this.name].push(this.value || '');
+      } else {
+        o[this.name] = this.value || '';
+      }
+    });
+    return o;
+  };
+
+  /*
+   * form中值为空的控件不序列化
+   *$("#form").serializeExceptEmpty()
+   *@exceptParam  直接指定不进行序列化的参数   格式如$("#form").serializeExceptEmpty(['storeName','age']) 
+   **/
+  $.fn.serializeExceptEmpty = function(exceptParam) {
+    var str = "";
+    var a = this.serializeArray();
+    $.each(a, function() {
+      if(exceptParam&&$.inArray(this.name,exceptParam)!=-1){
+        //如果是排除的参数，则return
+        return;
+      }
+      if($.trim(this.value).length>0){
+        str+='&'+this.name+'='+this.value;
+      }
+    });
+    return str;
+  };
+  /**
+   * 使用格式如：$('input[name="favorite"]').arrayVal();
+   * 返回数组格式的值如  ["游泳","美食"]
+   */
+  $.fn.arrayVal=function(){
+    var self = $(this);
+    var result = [];
+       if(self.length > 0){
+          self.each(function(){
+           result.push($(this).val());
+          });
+    }
+    return result;
+  };
+});

@@ -1,0 +1,76 @@
+<link rel="stylesheet" href="resources/css/upload.css" />
+<div class="container-fluid">
+	<div class="widget-box bm">
+		<div class="widget-title">
+			<i class="icon icon-th-large kjtubiao"></i>
+			<h5>创建账号</h5>
+		</div>
+		<div class="widget-content mt20">
+			<form id="accountForm"  name="accountForm" class="form-horizontal">
+				<div class="control-group">
+					<label class="control-label">账号</label>
+					<div class="controls form-group">
+						<input type="text"  id="account" name="account">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">密码</label>
+					<div class="controls form-group">
+						 <input type="text"   id="password"  name="password"/>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">确认密码</label>
+			   		<div class="controls form-group">
+				      <input type="text"   id="password_again"  name="password_again"/>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">手机号</label>
+			   		<div class="controls form-group">
+				     <input  type="text"  id="cellPhone" name="cellPhone"/>
+					</div>
+				</div>
+			 <div class="control-group">
+					<label class="control-label">邮箱</label>
+			   		<div class="controls form-group">
+				     <input  type="text"  id="email" name="email"/>
+					</div>
+				</div>
+				 <div class="control-group">
+					<label class="control-label">选择角色</label>
+			   		<div class="controls form-group">
+				           <input   type="button"  id="selectRolesBtn"   class="btn btn btn-info" value="选择"/>
+				           <div id="selectedRolesHtml"></div> 
+					</div>
+				</div>
+				<div class="control-group">
+					 <label class="control-label">上传头像</label>
+			   		<div class="controls form-group">
+                  <input   type="button"  id="head" name="head"  class="btn" value="选择"/> 
+					</div>
+				</div>
+				<div class="control-group">
+					 <label class="control-label">上传身份证</label>
+			   		<div class="controls form-group">
+				    <input  type="button" id="idCardUpload"   class="btn" name="idCardUpload"  value="开始上传"  />
+                        <input   type="button" id="idCard" name="idCard" class="btn"   value="选择" />
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label"></label>
+					<div class="controls">
+						<input type="submit"  id="accountSubmitBtn" class="btn btn-primary btn-large"  data-loading-text="正在提交..."  value="创建"/>
+						<input class="btn btn-large  ml" type="button" value="返回"  onclick="back();" />
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<input type="hidden"  id="breadcrumbText" parent="account/manager" value="创建" />
+<script type="text/javascript">
+seajs.use('account/create',function(create){
+	create.init();
+});
+</script>

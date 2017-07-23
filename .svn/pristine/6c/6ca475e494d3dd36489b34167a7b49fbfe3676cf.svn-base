@@ -1,0 +1,105 @@
+@-webkit-keyframes shake { 0%, 100% {
+	-webkit-transform: translateX(0);
+}
+20%{-webkit-transform:translateX(-10px);}
+70%{-webkit-transform:translateX(10px);}}
+
+.newsHint {
+	padding: 10px 20px;
+	background: #FF704B;
+	text-align: center;
+	position: fixed;
+	top: 10%;
+	left: 35%;
+	border-radius: 3px;
+	color: #fff;
+	-webkit-animation: 0.2s shake;
+}
+
+.newsSuccess {
+	background: #5cb85c;
+}
+
+.loading {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	z-index: 2099;
+	width: 32px;
+	height: 32px;
+	background: url('../images/loading.gif') no-repeat;
+	margin: -16px -16px 0px 0px;
+}
+/*	分页 */
+.paging-left {
+	color: #888;
+}
+
+.paging a {
+	height: 28px;
+	line-height: 28px;
+	margin-right: 2px;
+	border: 1px solid #CACACA;
+	display: inline-block;
+	padding: 0 10px;
+	border-radius: 3px;
+	color: #333;
+}
+
+.paging a.pgCurrent, .paging a:hover {
+	display: inline-block;
+	height: 28px;
+	line-height: 28px;
+	padding: 0 10px;
+	background: #839097;
+	border: 1px solid #77848B;
+	color: #fff;
+	text-decoration: none;
+	border-radius: 2px;
+}
+
+.paging a.pgEmpty {
+	color: #aaa;
+	background: #fff;
+	border: 1px solid #CACACA;
+}
+
+.paging span {
+	color: #666;
+	margin: 0 5px
+}
+
+.paging a i {
+	width: 12px;
+	height: 10px;
+	overflow: hidden;
+}
+
+.paging a i.previous {
+	background-position: -22px -39px;
+	margin-top: 9px;
+	float: left
+}
+
+.paging a:hover i.previous {
+	background-position: -60px -39px;
+}
+
+.paging a i.next {
+	background-position: 0px -39px;
+	margin-top: 9px;
+	float: right
+}
+
+.paging a:hover i.next {
+	background-position: -38px -39px;
+}
+
+input.input-text {
+	height: 30px;
+	line-height: 30px;
+	padding: 0 5px;
+	border: 1px solid;
+	border-color: #999 #D0D0D0 #D0D0D0 #999;
+	color: #666;
+}

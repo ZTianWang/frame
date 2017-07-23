@@ -1,0 +1,24 @@
+package com.frame.test;
+
+import java.util.UUID;
+
+import org.crazycake.utils.CamelNameUtils;
+
+import com.frame.enumtype.LoginSourceEnum;
+ 
+
+public class Test {
+	 
+   
+	public static void main(String[] args) throws Exception {
+		 System.out.println(UUID.randomUUID().toString().replace("-", ""));
+     }
+	
+ 
+	 
+ 
+	 
+	
+	  
+   
+}

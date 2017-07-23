@@ -1,0 +1,39 @@
+package com.frame.test;
+
+import java.io.File;
+import java.io.FileInputStream;
+
+import org.apache.commons.net.ftp.FTPClient;
+
+import com.frame.utils.ftp.FTPClientConfigure;
+import com.frame.utils.ftp.FTPClientPool;
+import com.frame.utils.ftp.FtpClientFactory;
+
+public class Test {
+
+	public static void main(String[] args) throws Exception {
+
+		FTPClientConfigure config=new FTPClientConfigure();
+		config.setHost("127.0.0.1");
+		config.setPort(21);
+		config.setUsername("990448338");
+		config.setPassword("990448338");
+		config.setPassiveMode("true");
+		config.setEncoding("UTF-8");
+		config.setClientTimeout(3000);
+		config.setPoolSize(2);
+		config.setTransferFileType(2);
+	 
+		
+        FtpClientFactory factory=new FtpClientFactory(config);
+        
+        FTPClientPool  pool=new FTPClientPool(config.getPoolSize(), factory);
+        
+        FTPClient  ftpclient= pool.borrowObject();
+        boolean rs=ftpclient.storeFile(new String("c/哈哈.text".getBytes("UTF-8"),"ISO8859-1"), new FileInputStream(new File("D:\\哈哈.txt")));
+        pool.returnObject(ftpclient);
+         
+	}
+	  
+   
+}

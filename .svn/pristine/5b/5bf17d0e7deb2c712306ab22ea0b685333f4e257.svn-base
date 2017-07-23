@@ -1,0 +1,46 @@
+package com.frame.controller;
+
+import java.io.FileNotFoundException;
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.frame.entity.User;
+import com.frame.service.UserService;
+import com.frame.utils.exception.FrameException;
+import com.frame.utils.pager.Pager;
+
+@Controller
+@RequestMapping("/user")
+public class UserController {
+
+	@Autowired
+	private UserService userService;
+ 
+	@RequestMapping("/list")
+	public String userList(Model model)     {
+		Pager<User> pager=userService.findPage("oorder>5", null);
+		model.addAttribute("pager", pager);
+		return "index";
+	}
+	
+	@RequestMapping("/add")
+	public void add(Model model)  {
+		 userService.add();
+	}
+	
+ 
+	
+	@RequestMapping(value="/find")
+	@ResponseBody
+	public List<User> findUsers(@Param("name") String name) {
+		return userService.findUsers();
+		 
+	}
+}

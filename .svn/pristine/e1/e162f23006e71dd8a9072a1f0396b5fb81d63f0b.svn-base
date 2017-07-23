@@ -1,0 +1,17 @@
+package com.frame.utils;
+
+/**
+ * 自定义状态码  后续根据实际情况定义
+ *
+ */
+public class HttpCode {
+	/**
+	 * 成功
+	 */
+	public static final  int SUCCESS=200; 
+	/**
+	 * 失败
+	 */
+	public static final  int FAILURE=500; 
+
+}

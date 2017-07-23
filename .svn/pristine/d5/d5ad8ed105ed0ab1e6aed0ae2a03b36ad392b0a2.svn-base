@@ -1,0 +1,180 @@
+define(function(require, exports) {
+	/*处理级联的半选，全选状态，处理删除和新增function*/
+	var roleId;
+	var functionCbx;/*id对应的function集合*/
+	 var resultObj;/*级联checkbox处理之后的结果，用来判断选中、半选中、未选中*/
+	 var addFunctions;/*要增加的function  需要传给后台*/
+	 var deleteFunctions;/*要删除的function  需要传给后台*/
+	 var allFunctions;/*所有数据库已经存储的方法*/
+	 function countCheckBox(param){
+		 var obj=resultObj[param.parentId];
+		 if(!obj){
+			 obj={checked:0,total:0};
+			 resultObj[param.parentId]=obj;
+		 }
+		 obj.total=obj.total+1;
+		 if(param.checked){
+			 obj.checked= obj.checked+1;
+		 } 
+		var docObj= document.getElementById(param.parentId);
+	    var docParentId= docObj.attributes['parentId'];
+       if(docParentId){
+       	countCheckBox({checked:param.checked,parentId:docParentId.nodeValue});
+       }
+	 };
+	
+	 function initCbx(){
+			resultObj={};
+	 }
+	 
+	 function showCbx(){
+			for(var attr in functionCbx){
+				var array=functionCbx[attr];
+				for(var i=0;i<array.length;i++){
+					countCheckBox(array[i]);
+				}
+			 }
+	        for(var attr in resultObj){
+	        	  var temp=resultObj[attr];
+	        	  var docObj=document.getElementById(attr);
+        	  docObj.checked=false;
+         	  docObj.indeterminate=false;
+	        	  if(temp.checked==temp.total){
+	        		  docObj.checked=true;
+	        	  }else if(temp.checked!=0){
+	        		  docObj.indeterminate=true;
+	        	  }
+	        }
+	 }
+	exports.init = function() {
+		/*每次进来都初始化，防止前进后退、缓存等操作造成的数据混乱*/
+		functionCbx={};
+		addFunctions=new Array();
+		deleteFunctions=new Array();
+		  roleId = getParameter('roleId');
+		$('#roleName').html('当前正在编辑[' + getParameter('roleName') + ']角色');
+		// 显示内容
+		KU.send({
+			url : 'role/menusfunctions/' + roleId,
+			success : function(data) {
+				initCbx();
+				allFunctions=new Array();
+				$('#roleEditMenusFunctionsHtml').html(template('roleEditMenusFunctionsTpl', {
+					items : data,
+					initChecked : function(functionId,checked, parentId) {
+						if(!functionCbx[parentId]){
+							functionCbx[parentId]=new Array();
+						}
+						functionCbx[parentId].push({checked:checked,parentId:parentId});
+						if (checked) {
+							allFunctions.push(functionId);
+							return 'checked=true';
+						}
+					}
+				}));
+				/* 初始化显示效果 开始 */
+				showCbx();
+		        /* 初始化显示效果 结束 */
+		        bindFunction()/*绑定checkbox事件*/
+			}
+		});
+	};
+	
+	
+	function bindFunction(){
+		function setChildrenChecked(checked,parentId){
+			var children=$('#roleEditMenusFunctionsHtml  input[parentId="'+parentId+'"]');
+			 functionCbx[parentId]=new Array();
+			children.each(function(){ 
+				    var $this=$(this);
+				    $this.prop('checked',checked);
+	    		     if($this.hasClass('fun')){
+	    		    	 functionCbx[parentId].push({checked:checked,parentId:parentId});
+	    		    	 $this.trigger("functionOption");
+	    		     }else{
+	    		    	 setChildrenChecked(checked,$this.attr('id')?$this.attr('id'):$this.attr('parentId'));
+	    		     }
+	    	 }); 
+		};
+		/*自定义js方法，只允许通过代码触发，方便收集数据，不会被用户手动触发*/
+		$('#roleEditMenusFunctionsHtml .fun').on('functionOption',function() {
+			var $this=$(this);
+			var  functionId=$this.attr('functionId');
+		    var checked=$this.prop('checked');
+		    var rs=$.inArray(functionId, allFunctions);
+		    
+		    if(checked){/*如果选中*/
+		    	/*如果数据库中未存储，则放进要新增的数组中*/
+		    	if(rs==-1){
+		    		 addFunctions.push(functionId);
+		    	}
+		    	/*如果要删除的数组中有*/
+		    	var  index=-1;
+		    	if((index=$.inArray(functionId, deleteFunctions))!=-1){
+		    		deleteFunctions.splice(index,1); 
+		    	}
+		    }else{
+		    	if(rs!=-1){
+		    		deleteFunctions.push(functionId);
+		    	}
+		    	var  index=-1;
+		    	if((index=$.inArray(functionId, addFunctions))!=-1){
+		    		addFunctions.splice(index,1); 
+		    	}
+		    }
+		 
+		});
+		$('#roleEditMenusFunctionsHtml input[type="checkbox"]').on('click',function() {
+			    initCbx();
+			     var $this=$(this);
+			     var id=$this.attr('id')?$this.attr('id'):$this.attr('parentId');
+			     if($this.hasClass('fun')){
+			    	 $this.trigger("functionOption");
+			    	 var children=$('#roleEditMenusFunctionsHtml  input[parentId="'+id+'"]');
+			    	 functionCbx[id]=new Array();
+			    	 children.each(function(){  
+						 functionCbx[id].push({checked:$(this).prop('checked'),parentId:id});
+			    	 }); 
+			     }else{
+			    	 setChildrenChecked($this.is(':checked'),id);
+			     }
+			 	showCbx();
+		});
+		var $saveBtn=$('#saveMenusFunctionsBtn');
+	 
+		$saveBtn.on('click',function() {
+			$saveBtn.button('loading');
+			if(addFunctions.length==0&&deleteFunctions.length==0){
+				 newsHint('权限未变动');
+			     resetBtn();
+			   }else{
+				   KU.send({
+					   url : 'role/functions/'+roleId,
+					   type : 'PUT',
+					   sText:'保存成功',
+					   data : {
+						   addFunctions:addFunctions,
+						   deleteFunctions:deleteFunctions
+					   },
+					   complete:function(){
+						   if(addFunctions.length>0){
+							   for(var i=0;i<addFunctions.length;i++){
+								   allFunctions.push(addFunctions[i]);
+							   }
+						   }
+						   addFunctions=new Array();
+						   if(deleteFunctions.length>0){
+							   for(var i=0;i<deleteFunctions.length;i++){
+								   var index=-1;
+								   if((index=$.inArray(deleteFunctions[i], allFunctions))!=-1){
+									   allFunctions.splice(index,1); 
+							    	}
+							   }
+						   }
+						   deleteFunctions=new Array();
+					   } 
+				   });
+			   }
+		});
+	}
+});

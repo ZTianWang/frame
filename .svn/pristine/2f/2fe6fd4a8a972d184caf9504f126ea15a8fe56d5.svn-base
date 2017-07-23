@@ -1,0 +1,18 @@
+package com.frame.utils.idworker;
+
+import java.util.ResourceBundle;
+
+public class IdUtil {
+	private    static IdWorker idWorker;
+	
+	public  void initIdWorker(ResourceBundle resource){
+		idWorker=new IdWorker(Long.parseLong(resource.getString("idworker.workerId")),Long.parseLong(resource.getString("idworker.datacenterId")));
+	}
+	
+	
+	public static long nextId(){
+		return idWorker.nextId();
+	}
+	
+	
+}

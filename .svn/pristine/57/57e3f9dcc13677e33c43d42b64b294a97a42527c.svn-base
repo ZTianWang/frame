@@ -1,0 +1,28 @@
+define(function(require, exports) {
+	exports.init = function() {
+		require('js/jquery/jquery.md5');
+		$('#login').on('click', function() {
+			// 暂时保证不暴露明文密码，其余安全措施，后续加强，否则始终存在隐患
+			var password = $.md5($.md5($('#password').val()));
+			KU.send({
+				url : 'authorization',
+				type : 'POST',
+				sText : false,
+				eText : [ {
+					code : 404,
+					text : '用户名或密码错误'
+				} ],
+				data : {
+					account : $('#account').val(),
+					password : password,
+				},
+				success : function(data) {
+					$.cookie(KU.cookieRelative.authorization, data.authorization);
+					$.cookie(KU.cookieRelative.account, data.account);
+					target('main.html#?current=welcome&'+KU.belongTo+'=welcome');
+					
+				}
+			});
+		});
+	}
+});

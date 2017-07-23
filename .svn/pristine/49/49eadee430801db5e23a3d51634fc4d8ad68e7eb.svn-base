@@ -1,0 +1,94 @@
+package com.frame.utils.filter;
+
+import java.io.IOException;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import com.frame.service.AuthorizationService;
+import com.frame.utils.pager.SystemContext;
+
+
+public class SystemContextFilter implements Filter {
+    private Integer pageSize;
+    private AuthorizationService authorizationService;
+  
+
+    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException, ServletException   
+              {
+    	 
+    	HttpServletRequest request=(HttpServletRequest) req;
+    	String uri= request.getRequestURI();
+    	if(uri.equals("/upload")){//upload特殊处理，controller中会控制
+    		 chain.doFilter(req,resp);
+    	}else{
+    		 if(uri.endsWith("page")){
+       		  excutePageList(req, resp, chain);
+       	   }else{
+       	 	  chain.doFilter(req,resp);
+       	   }
+    	}
+    	
+    	 
+    	  
+     
+    }
+
+    public void excutePageList(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException, ServletException{
+		   Integer offset = 0;
+	        try {
+	            offset = Integer.parseInt(req.getParameter("offset"));
+	        } catch (NumberFormatException e) {
+	        }
+	        String pageSizeStr=req.getParameter("pageSize");
+	        Integer pageSizeParam=pageSize;
+	        if(pageSizeStr!=null){
+	        	 try {
+	        		 pageSizeParam = Integer.parseInt(pageSizeStr);
+	             } catch (NumberFormatException e) {
+	             }
+	        }
+	       
+	        
+	        try {
+	            SystemContext.setOrder(req.getParameter("order"));
+	            SystemContext.setSort(req.getParameter("sort"));
+	            SystemContext.setPageOffset(offset);
+	            SystemContext.setPageSize(pageSizeParam);
+				chain.doFilter(req,resp);
+	        } finally {
+	            SystemContext.removeOrder();
+	            SystemContext.removeSort();
+	            SystemContext.removePageOffset();
+	            SystemContext.removePageSize();
+	        }
+	
+    }
+    
+    public void init(FilterConfig cfg) throws ServletException {
+        try {
+            pageSize = Integer.parseInt(cfg.getInitParameter("pageSize"));
+            ServletContext context = cfg.getServletContext();  
+            ApplicationContext ctx = WebApplicationContextUtils.getWebApplicationContext(context);  
+            authorizationService = (AuthorizationService) ctx.getBean(AuthorizationService.class);  
+        } catch (NumberFormatException e) {
+        	pageSize=10;
+        }
+    }
+
+	@Override
+	public void destroy() {
+		 
+		
+	}
+
+}

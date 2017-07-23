@@ -1,0 +1,19 @@
+package com.frame.test;
+
+import com.frame.utils.SecurityUtil;
+
+public class Test {
+	 
+     
+	
+	public static void main(String[] args) throws Exception {
+        String str=SecurityUtil.md5("990448338");
+		System.out.println(SecurityUtil.md5(str));
+//		921dbc2e53e0875e829c0ab4a6c0aa78
+     }
+	 
+ 
+	
+	  
+   
+}

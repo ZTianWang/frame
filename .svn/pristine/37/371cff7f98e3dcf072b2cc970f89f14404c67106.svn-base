@@ -1,0 +1,74 @@
+<div class="container-fluid">
+	<div class="widget-box">
+		<div class="widget-title clearfix">
+			<a style="display: none;" id="roleCreateBtn" class="pull-right widget-title-btn btn btn-success">&nbsp;</a>  <i class="icon icon-th-large kjtubiao"></i>
+			<h5>角色管理</h5>
+		</div>
+		<div class="widget-content mt20">
+			<!-- 查询条件开始 -->
+			<div class="form-horizontal">
+				<form >
+					<table class="container text-left container-table">
+						<tbody>
+							<tr>
+								<td><input  placeholder="角色名称"  type="text" name="roleName" id="roleName" /> <input type="button" class="input-buttom btn btn-primary ml" id="searchBtn" value="查询"/></td>
+							</tr>
+						</tbody>
+					</table>
+				</form>
+			</div>
+			<!--查询条件结束-->
+			<table class="table table-striped table-list table-hover">
+				<thead>
+					<tr>
+						<th>序号</th>
+						<th>角色名称</th>
+						<th>创建时间</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody id="resultTable">
+				</tbody>
+				<tfoot class="table-footer">
+					<tr>
+						<td colspan="4" id="pager"></td>
+					</tr>
+				</tfoot>
+			</table>
+
+		</div>
+	</div>
+</div>
+
+
+<script type="text/html" id="roleListTpl">
+  {{each data as role}}
+       <tr>
+       <td>{{$index+1+offset}}</td>
+            <td>{{role.name}}</td>
+            <td>{{role.createDate}}</td>
+ <td>
+ <!--放置自定义属性，方便js绑定事件时使用-->
+    {{each functionBtns as fun}}
+       <a   flag="{{fun.flag}}" id="{{role.id}}" roleName="{{role.name}}"     class="btn btn-mini btn-primary ml roleFunBtn"  >
+       <!--根据标识符，来判断输出什么样式的组件，灵活性交给前端控制-->
+<i class="
+       {{if fun.flag=='editMenus'}}
+            icon-check
+      {{else if fun.flag=='edit'}} 
+           icon-edit
+      {{/if}}
+"></i>
+      {{fun.name}}
+          </a>
+   {{/each}}
+</td>
+        </tr>
+  {{/each}}
+    </script>
+<script type="text/javascript">
+	seajs.use('role/manager', function(manager) {
+		manager.init();
+	});
+</script>
+

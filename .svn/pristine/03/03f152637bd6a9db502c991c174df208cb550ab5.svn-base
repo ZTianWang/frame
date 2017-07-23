@@ -1,0 +1,8 @@
+package com.frame.service;
+
+import com.frame.domain.User;
+
+public interface IUserService {
+  
+  public 	void addUser(User user); 
+}

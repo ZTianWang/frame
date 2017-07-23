@@ -1,0 +1,76 @@
+package com.frame.test;
+
+
+import java.util.Date;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.frame.entity.Account;
+import com.frame.entity.User;
+import com.frame.service.AccountService;
+import com.frame.utils.KVMap;
+import com.frame.utils.pager.Pager;
+import com.frame.utils.pager.SystemContext;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+//配置了@ContextConfiguration注解并使用该注解的locations属性指明spring和配置文件之后，
+@ContextConfiguration(locations = {"classpath:applicationContext.xml", "classpath:spring-mybatis.xml" })
+public class SpringTest {
+
+	
+	 String id="2026b3c0060f467c8d2131436675dba5";//从数据库中找到数据id
+   
+	 @Autowired
+	 private AccountService accountService;
+	 @Autowired
+		private RedisTemplate<String, User> redisTemplate;
+	 
+//    @Test
+    public void addUser(){
+       Account account=new Account();
+       account.setAccount("alfred");
+       account.setCellphone("15801187545");
+       account.setCreateDate(new Date());
+       account.setEmail("mrlixiaopeng@163.com");
+       account.setPassword("990448338");
+       accountService.add(account);
+    }
+    @Test
+    public void updateUser(){
+    	Account account=accountService.load("1");
+//    	   account.setAccount("alfred");
+//    	account.setCreateDate(new Date());
+//    	accountService.update(account,new String[]{"createDate","account"});
+      
+    }
+//    @Test
+    public void deleteUser(){
+//    	accountService.delete(id);
+    	accountService.delete(new String[]{"1","2"});
+    }
+ 
+//    @Test
+    public void count() {
+    	int num=accountService.count(null, null);
+    	 System.out.println("from count:"+num);
+    }
+//    @Test
+    public void findList() {
+ 
+     
+    	SystemContext.setPageSize(15);
+    	SystemContext.setPageOffset(0);
+    	SystemContext.setSort("create_date");
+    	SystemContext.setOrder("desc");
+    	Pager<Account> page=accountService.findPage(null, null,new String[]{"email","create_date"});
+     
+    
+    }
+    
+   
+}

@@ -1,0 +1,33 @@
+define(function(require, exports, module) {
+exports.init=function(){
+ 	require.async('js/jquery/jquery.history.min',function(){
+		$.History.bind(function(state) {
+			if (state) {
+				var q = state.indexOf('?');
+				if (q != -1) {
+					state = state.substring(0, q);
+				}
+				document.getElementById('mainHTML').innerHTML='<div id="loading"   class="loading"></div>';
+				$('#mainHTML').load('/' + state + '.html');
+			} 
+		});
+	});
+ 	
+ 	
+	require('dialog');
+	$('#normalDialog').on('click', function() {
+		var d = DLG({
+			title : '弹出组件',
+			content : '<font color="red">测试一下内容，看看标题栏是不是会被隐藏</font>',
+			ok:function(){
+				alert('点击了ok');
+			},
+			cancel:function(){
+				alert('点击了取消');
+			}
+		});
+		d.show();
+	}); 
+	 
+ }
+});

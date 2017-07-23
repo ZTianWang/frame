@@ -1,0 +1,24 @@
+package com.frame.mapper;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.frame.dto.FunctionsDto;
+import com.frame.dto.MenusDto;
+
+public interface MenusMapper {
+	/**
+	 * 根据账号id，通过角色等表关联，查询出用户具有的菜单
+	 * 
+	 * @return
+	 */
+	public List<MenusDto> findMenusByAccountId(@Param("accountId") String accountId);
+
+	/**
+	 * 根据账号id，通过角色等表关联，查询出用户具有的方法与菜单的对应信息
+	 * 
+	 * @return
+	 */
+	public List<FunctionsDto> findFunctionsByAccountId(@Param("accountId") String accountId);
+}

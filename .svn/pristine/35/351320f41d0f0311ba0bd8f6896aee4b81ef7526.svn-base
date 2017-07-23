@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.frame.mapper.MenusMapper">
+
+	<select id="findMenusByAccountId" resultType="menusDto">
+		select distinct m.id menu_id,m.parent_id,m.name menu_name,m.url,m.sort_num from
+		account_role ar
+		inner join role_menu rm on ar.role_id=rm.role_id
+		inner join menu m on rm.menu_id=m.id
+		where ar.account_id=#{accountId} order by m.sort_num
+	</select>
+
+
+</mapper>

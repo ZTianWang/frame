@@ -1,0 +1,22 @@
+package com.frame.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.frame.entity.Attachment;
+import com.frame.service.base.BaseService;
+import com.frame.utils.KVMap;
+
+/**
+ * 上传文件业务类
+ */
+@Service
+public class AttachmentService  extends  BaseService<Attachment>{
+	
+	
+	public List<Attachment> findAttachementListByRecordId(String recordId){
+		return findList("recordId=#{recordId}", new KVMap<String,Object>().add("recordId", recordId));
+	}
+
+}

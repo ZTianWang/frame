@@ -1,0 +1,117 @@
+define(function(require, exports) {
+	require('jvalid');// 引入jquery校验组件
+	require('js/uploadify');
+	var rules = {
+		password : {
+			maxlength : 12,
+			maxlengthText : '最长{0}个字符',
+		},
+		password_again : {
+			equalTo : "#password",
+		},
+		cellPhone : {
+			required : true,
+			mobile : true
+		},
+		email : {
+			required : true,
+			email : true
+		}
+	};
+	var selectedRoles;/*操作选择的角色*/
+	var dataSelectedRoles;/*已经拥有的角色*/
+	/* 页面初始化方法 */
+	exports.init = function() {
+		/* 先把参数id放进隐藏域，后续处理时，如果隐藏域内容为空，则说明是新增，否则就是修改 */
+		var accountId = getParameter('accountId');
+		$('#accountId').val(accountId);
+		/* 回显内容 */
+		KU.send({
+			url : 'account/' + accountId,
+			eText : {
+				500 : '数据回显错误，请重试'
+			},
+			success : function(data) {
+				/*回显账号本身的信息*/
+				var accountObj=data.account;
+				$('#accountText').text(accountObj.account);
+				$('#cellPhone').val(accountObj.cellPhone);
+				$('#email').val(accountObj.email);
+				/*回显拥有的角色*/
+				dataSelectedRoles=data.roles;
+				selectedRoles=$.extend(true, {}, dataSelectedRoles);
+				var selectRolesDialog=require('role/select-roles-dialog');
+				 selectRolesDialog.compile('selectedRolesHtml',selectedRoles);
+				/*弹出窗口选择角色*/
+				$('#selectRolesBtn').on('click', function() {
+					selectRolesDialog.init('selectedRolesHtml',selectedRoles,function(roles){
+						selectedRoles=roles;
+					});
+				});
+			}
+		});
+		/* 初始化加载校验组件及操作 */
+		var $accountForm=$('#accountForm');
+		$accountForm.validForm(rules, function() {
+			/* 如果验证通过，则排除相关input之后，序列化表单内容 */
+			var formJson = $accountForm.serializeJson([ 'password_again',  'headFile','idCardFile' ]);
+			/* 设置上传的头像字段 */
+			formJson['headFile'] = $accountForm.find('input[name="headFile"]').arrayVal();
+			/* 设置上传的身份证字段 */
+			formJson['idCardFile'] = $accountForm.find('input[name="idCardFile"]').arrayVal();
+			/*要删除的：旧的里面有，新的里面没有*/
+			var deleteRoles=new Array();
+			 for(var attr in dataSelectedRoles ){
+				 if(!selectedRoles[attr]){
+					 deleteRoles.push(attr); 
+				 }
+			 }
+			/*要增加的：新的里面有，旧的里面没有*/
+				var addRoles=new Array();
+				 for(var attr in selectedRoles ){
+					 if(!dataSelectedRoles[attr]){
+						 addRoles.push(attr); 
+					 }
+				 }
+				 /*追加要操作的角色id数组*/
+				 formJson['addRoles']=addRoles;
+				 formJson['deleteRoles']=deleteRoles;
+			KU.send({
+				url : 'account/' + accountId,
+				type : 'PUT',
+				data : formJson,
+				success : function(data) {
+					back();
+				}
+			});
+
+		});
+
+		/**
+		 * 初始化加载上传组件及操作
+		 */
+			KU.send({
+				url : 'attachment/record/' + accountId,
+				eText : '加载附件失败',
+				success : function(data) {
+					/* 初始化头像上传 */
+					KU.renderFileTpl({
+						attList : data['0'],
+						btnId : 'head',
+						recordId : accountId,
+						fileType : 0,
+						uploadify:{
+							auto:true
+						}
+					});
+					KU.renderFileTpl({
+						attList : data['1'],
+						btnId : 'idCard',
+						recordId : accountId,
+						fileType : 1
+					});
+				}
+			});
+
+	}
+});

@@ -1,0 +1,181 @@
+package com.frame.service;
+
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+import com.frame.command.AuthorizationCommand;
+import com.frame.dto.AuthorizationDto;
+import com.frame.dto.MenuFunctionDto;
+import com.frame.entity.AccountEntity;
+import com.frame.enumtype.LoginSourceEnum;
+import com.frame.mapper.MenusMapper;
+import com.frame.utils.HttpCode;
+import com.frame.utils.KVMap;
+import com.frame.utils.SecurityUtil;
+import com.frame.utils.StringUtil;
+import com.frame.utils.exception.FrameException;
+
+@Service
+public class AuthorizationService {
+
+	@Autowired
+	private AccountService accountService;
+
+	@Autowired
+	private RedisTemplate<String, Object> redisTemplate;
+
+	@Autowired
+	private MenusMapper menusMapper;
+
+	public void expire(String authorization, int deviceType) {
+		if (deviceType == LoginSourceEnum.PC.code()) {
+			redisTemplate.expire(authorization, 60, TimeUnit.MINUTES);
+		}
+		// 其余类型依次判断，当然，后续可以抽取到配置文件中定义
+	}
+
+	public AuthorizationDto findAuthorizationDtoByAuthorization(String authorization) {
+		AuthorizationDto authorizationDto = (AuthorizationDto) redisTemplate.opsForValue().get(authorization);
+		return authorizationDto;
+	}
+
+	/**
+	 * 根据条件，判断是否存在用户
+	 * 
+	 * @param authorizationCommand
+	 * @throws NoSuchAlgorithmException 
+	 */
+	public AuthorizationDto queryLogin(AuthorizationCommand cmd, int deviceType) throws NoSuchAlgorithmException {
+		KVMap<String, Object> parameter = new KVMap<String, Object>();
+		AuthorizationDto authorizationDto = new AuthorizationDto();
+		    // 根据输入的内容，判断是   用户名|手机号|邮箱  校验用户名和密码，注意此处密码是客户端已经两次md5加密
+		     String condition="account";
+		     if(StringUtil.isCellPhone(cmd.getAccount())){
+		    	 condition="cellPhone";
+		     }else if(StringUtil.isEmail(cmd.getAccount())){
+		    	 condition="email";
+		     }
+			parameter.add("param", cmd.getAccount()).add("password", SecurityUtil.md5(SecurityUtil.md5(cmd.getPassword())));
+			List<AccountEntity> accountList = accountService.findList(condition+"=#{param} and password=#{password}", parameter, new String[] { "account" });
+			//如果第一次查询不到，且是手机号或者邮箱的规则，则有可能用户账号本来就是如此，并非手机、邮箱字段有值
+			if (accountList.isEmpty()&&(condition.equals("cellPhone")||condition.equals("email"))) {
+				accountList = accountService.findList("account=#{param} and password=#{password}", parameter, new String[] { "account" });
+			}
+			
+			if (accountList.isEmpty()) {
+				throw new FrameException("用户名或密码错误", HttpCode.NOT_FOUND);
+			}
+			AccountEntity account = accountList.get(0);
+			authorizationDto.setAccount(account.getAccount());
+			authorizationDto.setAccountId(account.getId());
+
+		 
+		String token = UUID.randomUUID().toString().replace("-", "");
+		authorizationDto.setAuthorization(token);
+		// 如果是pc网页登录
+		if (deviceType == LoginSourceEnum.PC.code()) {
+			redisTemplate.opsForValue().set(token, authorizationDto, 60, TimeUnit.MINUTES);
+		} 
+
+		authorizationDto.setAccountId(null);// 缓存之后，不输出给调用者
+		return authorizationDto;
+	}
+
+	
+	public  Map<String,Object> findMenuFunctionByAccountId(AuthorizationDto authorizationDto){
+		  Map<String,Object>  resultMap=new HashMap<String, Object>();
+		   List<MenuFunctionDto> list=menusMapper.findMenuFunctionByAccountId(authorizationDto.getAccountId());
+		   resultMap.put("functions", findFunctionsInfoByAuthorization(authorizationDto, list));
+		   list= new TreeUtil(list).generateTreeNode("0");
+		   resultMap.put("menus", list);
+		   return resultMap;
+	}
+
+	public Map<String, List<Map<String, Object>>> findFunctionsInfoByAuthorization(AuthorizationDto authorizationDto, List<MenuFunctionDto> menuFunctionList ) {
+		Map<String, List<Map<String, Object>>> resultMap = new HashMap<String, List<Map<String, Object>>>();
+ 
+		List<Map<String, Object>> tempList = null;
+		Map<String, Object> tempMap = null;
+		String url = null;
+		Set<String> hashSet=new HashSet<String>();
+		for (MenuFunctionDto functionsDto : menuFunctionList) {
+			url = functionsDto.getFunctionUrl();
+			if(StringUtil.isEmpty(url)){
+				continue;
+			}
+			hashSet.add(url+functionsDto.getType());//提取url和type，以便aop过滤权限使用
+			if (url.endsWith("/page")) {
+				resultMap.put(url, null);
+				continue;
+			}
+			if (resultMap.containsKey(functionsDto.getMenuUrl())) {
+				tempList = resultMap.get(functionsDto.getMenuUrl());
+			} else {
+				tempList = new ArrayList<Map<String, Object>>();
+				resultMap.put(functionsDto.getMenuUrl(), tempList);
+			}
+			tempMap = new HashMap<String, Object>();
+			tempMap.put("name", functionsDto.getFunctionName());
+			tempMap.put("flag", functionsDto.getFlag());
+			tempList.add(tempMap);
+		}
+		/*加入拥有的function，然后放入authorizationDto，二者共生死，之后放回缓存，*/
+		authorizationDto.setFunctions(hashSet);
+		redisTemplate.opsForValue().set(authorizationDto.getAuthorization(), authorizationDto, 60, TimeUnit.MINUTES);
+		return resultMap;
+	}
+    
+ 	public List<Map<String,String>>  findRoleInfoByAccountId(String accountId){
+ 		return menusMapper.findRoleInfoByAccountId(accountId);
+	} 
+	
+
+	 class TreeUtil{
+			private List<MenuFunctionDto> treeNodeList;
+			public TreeUtil(List<MenuFunctionDto> list) {
+				treeNodeList = list;
+			}
+			 
+			private List<MenuFunctionDto> getChildrenNodeByParentId(String nodeId) {
+				List<MenuFunctionDto> childrenTreeNode = new ArrayList<MenuFunctionDto>();
+				  Set<MenuFunctionDto>  set=new HashSet<MenuFunctionDto>();
+				  String lastId="";
+				for (MenuFunctionDto item : treeNodeList) {
+					if(!item.getMenuId().equals(lastId)){
+						if (item.getParentId().equals(nodeId)) {
+							item.setFlag(null);
+							item.setFunctionName(null);
+							item.setFunctionUrl(null);
+							item.setType(null);
+							childrenTreeNode.add(item);
+							lastId=item.getMenuId();
+						}
+					}else{
+						set.add(item);
+					}
+				}
+				treeNodeList.removeAll(set);
+				return childrenTreeNode;
+			}
+		 
+			public List<MenuFunctionDto> generateTreeNode(String parentId) {
+			       List<MenuFunctionDto>  treeNodes=getChildrenNodeByParentId(parentId);
+			       treeNodeList.removeAll(treeNodes);//每次删除处理过的
+			       for(MenuFunctionDto item:treeNodes){
+			    	   item.setChildren(generateTreeNode(item.getMenuId()));
+			       }
+			    return treeNodes;
+			}
+	 }
+}

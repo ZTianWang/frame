@@ -1,0 +1,5 @@
+ <div>
+	  欢迎欢迎，热烈欢迎
+</div>
+<input type="hidden"  id="breadcrumbText"   value="欢迎页面" />
+ 

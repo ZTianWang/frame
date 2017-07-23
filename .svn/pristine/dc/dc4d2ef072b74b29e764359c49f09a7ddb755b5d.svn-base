@@ -1,0 +1,33 @@
+package com.frame.service;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+import com.frame.entity.User;
+import com.frame.mapper.UserMapper;
+import com.frame.service.base.BaseService;
+
+@Service
+public class UserService extends BaseService<User> {
+	@Autowired
+	private UserMapper userMapper;
+	@Autowired
+	private   RedisTemplate<String,User>  redisTemplate;
+	public List<User> findUsers() {
+		return findPage(null, null).getData();
+	}
+	public User  tet(String id,String key) {
+		User user=new User();
+		user.setCreateDate(new Date());
+		user.setOorder(666);
+		user.setUserName("okokokoko");
+		return user;
+	}
+ 
+ 
+
+}

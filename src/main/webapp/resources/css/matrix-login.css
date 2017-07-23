@@ -1,0 +1,105 @@
+html, body { width: 100%; }
+
+/*Bootstrap-overlay*/
+body { overflow-x: hidden; font-family: 'Hiragino Sans GB', 'Microsoft YaHei', '宋体', Helvetica, Arial, sans-serif; font-size: 12px; color: #666; }
+a { color: #666; }
+a:hover, a:focus { text-decoration: none; color: #ff7049; }
+html{width:100%; height:100%;}
+.lgBg{background:url(../img/bg.png) center center no-repeat; background-size:cover; width:100%; height:100%; overflow:hidden; }
+.dropdown-menu .divider { margin: 4px 0px; }
+.dropdown-menu { min-width: 180px; }
+.dropdown-menu > li > a { padding: 3px 10px; color: #666; font-size: 12px; }
+.dropdown-menu > li > a i { padding-right: 3px; }
+.userphoto img { width: 19px; height: 19px; }
+select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input, .label, .dropdown-menu, .btn, .well, .progress, .table-bordered, .btn-group > .btn:first-child, .btn-group > .btn:last-child, .btn-group > .btn:last-child, .btn-group > .dropdown-toggle, .alert { border-radius: 0px; }
+.btn, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input { box-shadow: none; }
+.progress, .progress-success .bar, .progress .bar-success, .progress-warning .bar, .progress .bar-warning, .progress-danger .bar, .progress .bar-danger, .progress-info .bar, .progress .bar-info, .btn, .btn-primary { background-image: none; border-radius: 3px }
+.fl { float: left }
+.fr { float: right }
+.label-important, .badge-important { background: #f74d4d; }
+
+/*Metro Background color class*/
+.bg_lb { background: #27a9e3; }
+.bg_db { background: #2295c9; }
+.bg_lg { background: #28b779; }
+.bg_dg { background: #28b779; }
+.bg_ly { background: #ffb848; }
+.bg_dy { background: #da9628; }
+.bg_ls { background: #2255a4; }
+.bg_lo { background: #da542e; }
+.bg_lr { background: #f74d4d; }
+.bg_lv { background: #603bbc; }
+.bg_lh { background: #b6b3b3; }
+#loginbox {background: #fff; width:460px; margin:0 auto; border-radius: 4px; overflow: hidden; box-shadow: 0 0px 10px rgba(50, 72, 88, 0.1); margin-top:8%; }
+#loginbox .normal_text {padding: 15px 10px; margin-bottom: 20px; text-align: center; font-size: 14px; line-height: 20px; background: #324858; color: #fff;}
+.form-horizontal { margin-bottom: 0px }
+.ky-statistic-form { background: #fff; }
+.ky-statistic-form .control-group { padding: 5px 0 }
+.ky-statistic-form .control-label { width: 110px; line-height: 45px; margin-bottom: 0px; color: #aaa; padding: 0px; }
+.ky-statistic-form .control-label span { display: inline-block; height: 42px; line-height: 42px; width: 42px; vertical-align: top; text-align: center; border-radius: 3px; background: #E8E8EC; }
+.ky-statistic-form .control-label span i { color: #aaa }
+.ky-statistic-form .controls { margin-left: 130px; *margin-left:0px}
+.ky-statistic-form .controls input[type="text"], .ky-statistic-form .controls input[type="password"] { background: #fdfdfd; width: 70%; padding: 8px 10px; color: #888; border: 1px solid; border-color: #d6d6d6 #e6e6e6 #e6e6e6 #d6d6d6; border-radius: 3px }
+.ky-statistic-form .controls input.input-code { width: 100px !important }
+.ky-statistic-form .controls .code { margin-left: 5px; vertical-align: top }
+.ky-statistic-form .input-entry { height: 45px; line-height: 45px; font-weight: 700; font-size: 14px }
+.form-actions-ky { padding: 20px 30px; overflow: hidden; background: #F9F9FA; border-top: 1px solid #EEEEF1 }
+.form-actions-ky a.links { height: 45px; line-height: 45px; font-size: 14px; *line-height:0px;}
+.form-actions-ky2 { text-align: center; padding: 20px 30px; overflow: hidden; border-top: 1px solid #EEEEF1 }
+
+/* 登陆/找回密码 */
+.loginbox-title { padding: 5px 20px; margin-bottom: 25px; background: #F9F9FA; border-bottom: 1px solid #EEEEF1 }
+.loginbox-title h5 { color: #6F8395 }
+.loginbox-title a { height: 40px; line-height: 40px; font-size: 14px }
+.ky-statistic-remind { padding: 10px 40px 30px 40px; font-size: 14px; color: #888 }
+.ky-statistic-remind p { margin: 0px; padding: 10px 0px }
+.ky-statistic-remind p span { font-size: 14px; margin-right: 10px; color: #bbb }
+.ky-statistic-remind p strong { font-size: 16px; display: inline-block; font-weight: 700; color: #324858 }
+.footer { text-align: center; margin-top: 5%; color: #aaa }
+.form-validator .controls em { margin-left: 5px; height: 14px; display: inline-block; vertical-align: middle; }
+@media (max-width:800px) {
+    #logo { width: 60%; }
+    #loginbox { width: 80% }
+}
+@media (max-width:480px) {
+    #logo { width: 40%; }
+    #loginbox { width: 90% }
+    #loginbox .control-group { padding: 8px 0; }
+    .ky-statistic-form .control-label { display: none }
+    .ky-statistic-form .controls { margin-left: 20px }
+    .ky-statistic-form .controls input[type="text"], .ky-statistic-form .controls input[type="password"] { width: 87%; }
+}
+
+.sendSmsBtn{margin-left:20px;}
+.controls1{ line-height:45px; font-size:18px; font-weight:bold;}
+.form-validator .shall{color:#f00; padding-right:5px; vertical-align:-2px;}
+.form-validator .controls{position:relative;}
+/*兼容ie7*/
+[class^='icon-']{*margin-top:12px;}
+.loading {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	z-index: 2099;
+	width: 32px;
+	height: 32px;
+	background: url('../img/loading.gif') no-repeat;
+	margin: -16px -16px 0px 0px;
+}
+.newsHint {
+	padding: 10px 20px;
+	background: #FF704B;
+	text-align: center;
+	position: fixed;
+	top: 20%;
+	left: 45%;
+	border-radius: 3px;
+	font-size: 14px !important;
+	color: #fff;
+	-webkit-animation: 0.2s shake;
+}
+@-webkit-keyframes shake {
+    0%, 100% { transform: translateX(0px); }
+    10%, 30% { transform: translateX(-5px); }
+    20% { transform: translateX(5px); }
+}

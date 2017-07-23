@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+http://www.springframework.org/schema/cache
+http://www.springframework.org/schema/cache/spring-cache-4.2.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+	<context:component-scan base-package="com.frame.service" />
+	<cache:annotation-driven />
+	<!-- 引入dbconfig.properties属性文件 -->
+	<bean id="propertyConfigurerRedis"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="order" value="1" />
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="locations">
+			<list>
+				<value>classpath:redis.properties</value>
+				<value>classpath:config.properties</value>
+				<value>classpath:dbconfig.properties</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxTotal" value="${redis.maxTotal}" />
+		<property name="maxIdle" value="${redis.maxIdle}" />
+		<property name="maxWaitMillis" value="${redis.maxWaitMillis}" />
+		<property name="testOnBorrow" value="${redis.testOnBorrow}" />
+	</bean>
+
+	<!-- spring data redis  数据库数据在redis中的缓存库 -->
+	<bean id="jedisConnectionFactoryDBCache"
+		class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+		destroy-method="destroy">
+		<property name="usePool" value="true" />
+		<property name="hostName" value="${redis.host}" />
+		<property name="port" value="${redis.port}" />
+		<property name="password" value="${redis.pass}" />
+		<property name="timeout" value="${redis.timeout}" />
+		<property name="database" value="${redis.default.db}" />
+		<constructor-arg index="0" ref="jedisPoolConfig" />
+	</bean>
+	<!-- 非数据库数据在redis中的缓存库 -->
+	<bean id="jedisConnectionFactory"
+		class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+		destroy-method="destroy">
+		<property name="usePool" value="true" />
+		<property name="hostName" value="${redis.host}" />
+		<property name="port" value="${redis.port}" />
+		<property name="password" value="${redis.pass}" />
+		<property name="timeout" value="${redis.timeout}" />
+		<property name="database" value="${redis.service.db}" />
+		<constructor-arg index="0" ref="jedisPoolConfig" />
+	</bean>
+	
+	<bean id="stringRedisSerializer"
+		class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+	<bean id="jsonSerializer"
+		class="org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer" />
+          <!-- 数据库数据redis操作对象 -->
+	<bean id="redisDBCache" class="org.springframework.data.redis.core.RedisTemplate">
+		<property name="connectionFactory" ref="jedisConnectionFactoryDBCache" />
+		<property name="keySerializer" ref="stringRedisSerializer" />
+		<property name="hashKeySerializer" ref="stringRedisSerializer" />
+		<property name="valueSerializer" ref="jsonSerializer" />
+		<property name="hashValueSerializer" ref="jsonSerializer" />
+	</bean>
+	
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+		<property name="connectionFactory" ref="jedisConnectionFactory" />
+		<property name="keySerializer" ref="stringRedisSerializer" />
+		<property name="hashKeySerializer" ref="stringRedisSerializer" />
+		<property name="valueSerializer" ref="jsonSerializer" />
+		<property name="hashValueSerializer" ref="jsonSerializer" />
+	</bean>
+	<!--@Cacheable 注解在redis中的缓存和数据库数据的缓存都在 0使用同一个redi对象  -->
+	<bean id="cacheManager" class="org.springframework.data.redis.cache.RedisCacheManager">
+		<constructor-arg index="0" ref="redisDBCache" />
+	</bean>
+	  <!-- 配置唯一id生成器 -->
+	<bean id="idWorker" class="com.frame.utils.idworker.IdWorker">
+		<constructor-arg type="long" index="0">
+			<value>${idworker.workerId}</value>
+		</constructor-arg>
+		<constructor-arg type="long" index="1">
+			<value>${idworker.datacenterId}</value>
+		</constructor-arg>
+	</bean>
+	 <!-- 配置ftp连接池,暂时使用ftp处理文件，配合nginx -->
+	 <bean id="ftpClientConfigure" class="com.frame.utils.ftp.FTPClientConfigure">
+	    <property name="host" value="${ftp.host}" />
+		<property name="port" value="${ftp.port}" />
+		<property name="username" value="${ftp.userName}" />
+		<property name="password" value="${ftp.password}" />
+		<property name="passiveMode" value="true" />
+	    <property name="encoding" value="${ftp.encoding}" />
+		<property name="clientTimeout" value="${ftp.clientTimeout}" />
+		<property name="poolSize" value="${ftp.poolSize}" />
+	    <property name="rootDir" value="${ftp.upload.dir}" />
+	</bean>
+	
+	<bean id="ftpClientFactory" class="com.frame.utils.ftp.FTPClientFactory">
+		<constructor-arg index="0" ref="ftpClientConfigure" />
+	</bean>
+	 <bean id="ftpClientPool" class="com.frame.utils.ftp.FTPClientPool"  init-method="init" destroy-method="close">
+		<constructor-arg index="0" ref="ftpClientFactory" />
+	</bean>
+</beans>

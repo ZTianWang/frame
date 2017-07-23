@@ -1,0 +1,24 @@
+define(function(require, exports) {
+	//处理级联的半选，全选状态，处理删除和新增function
+	
+	exports.init=function(){
+		var roleId=getParameter('roleId');
+$('#roleName').html('当前正在编辑['+getParameter('roleName')+']角色');
+		//显示内容
+		KU.send({
+			url : 'role/menusfunctions/' + roleId,
+			success : function(data) {
+				$('#roleEditMenusFunctionsHtml').html(template('roleEditMenusFunctionsTpl', 
+				  {
+					items:data,
+					initChecked:function(checked){
+						if(checked){
+							return 'checked="checked"';
+						}
+					}
+					}
+				));
+			}
+		});
+	}
+});

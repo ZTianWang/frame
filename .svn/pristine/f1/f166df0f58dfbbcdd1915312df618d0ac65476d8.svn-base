@@ -1,0 +1,22 @@
+package com.frame.utils.exception;
+
+public class FrameException extends RuntimeException{
+	private static final long serialVersionUID = 1L;
+
+	public FrameException() {
+		super();
+	}
+
+	public FrameException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public FrameException(String message) {
+		super(message);
+	}
+
+	public FrameException(Throwable cause) {
+		super(cause);
+	}
+
+}

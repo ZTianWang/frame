@@ -1,0 +1,78 @@
+define(function(require, exports) {
+      require('jvalid');//引入jquery校验组件
+      require('jform');/*引入jqueryForm相关js*/
+      var rules = {
+    		  account: {
+    	        required: true,
+    	        requiredText:'账号不能为空',
+    	        maxlength:15,
+    	        maxlengthText:'最长{0}个字符',
+    	      },
+    	      password:{
+    	    	  required: true,
+    	    	  maxlength:12,
+      	          maxlengthText:'最长{0}个字符',
+    	      },
+    	      password_again:{
+    	    	  equalTo: "#password", 
+    	      },
+    	      cellphone: {
+    	    	  required: true,
+    	    	  mobile: true
+    	      },
+    	      email:{
+    	    	  required: true,
+    	    	  email:true
+    	      }
+    	    };
+      
+      $('#accountForm').validForm(rules,function(form) {
+    	  var formJson=$("#accountForm").serializeJson(['password_again']);
+    	  require.async('js/jquery/jquery.md5',function(){
+    		  formJson['password']=$.md5($.md5(formJson['password']));
+    		 
+    	        KU.send({
+    	     		url:'account',
+    	     		type:'POST',
+    	     		data:formJson,
+    	     		success:function(data){
+    	     		 c(data);
+    	     		}
+    	     	});
+    	  });
+     
+        
+ });
+      
+      
+      require.async('js/uploadify', function() {
+    	  var btnId='accountHead';
+     	 $('#'+btnId).uploadify({
+      	    onSWFReady:function(){
+      	    	 $('#startAccountHeadUpload').on('click', function () {
+          		    $('#'+btnId).uploadify('upload','*');
+          		  });
+      	    	
+      	/*   	KU.send({
+         		url:'attachment/record/666',
+         		eText:'加载附件失败',
+         		success:function(data){
+         			var result={
+         					attList:data,
+         					iniId:'fileUpload',
+         					calcSize:KU.calcSize
+         			};
+         			if(result.attList&&result.attList.length>=2){
+         				$('#'+btnId).uploadify('disable', true);
+         			}
+         			 var render=template.compile(require('resources/uploadTpl.html'));
+         			var html=render(result);
+         	        $('#fileUpload-queue').append(html);
+         		}
+         	}); */
+      		  
+      	    }
+      	 });
+     });
+  
+});

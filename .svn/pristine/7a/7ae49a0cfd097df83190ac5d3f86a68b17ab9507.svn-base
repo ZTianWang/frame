@@ -1,0 +1,39 @@
+package com.frame.test;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import com.frame.entity.User;
+import com.frame.utils.MyBatisHelper;
+
+public class Test {
+
+	public static void main(String[] args) throws InterruptedException {
+		
+		for(int i=1;i<=1500;i++){
+			new Thread("Thread"+i){
+				public void run() {
+					Map<String, Object> map = new HashMap<String, Object>();
+					map.put("id",UUID.randomUUID().toString());
+					map.put("oorder", (int)(Math.random()*100)+1);
+					map.put("user_name", "lucy");
+					map.put("create_date",new Date());
+					User user=new User();
+					MyBatisHelper.copyProp(user, map);
+					System.out.println(getName()+":"+user);
+				};
+			}.start();
+			if(i==1){
+				System.out.println(i+"+++++");
+				Thread.sleep(300);
+			}
+		}
+
+		 
+	}
+
+
+
+}

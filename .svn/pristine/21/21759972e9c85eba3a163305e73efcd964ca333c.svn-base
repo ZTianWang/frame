@@ -1,0 +1,68 @@
+package com.frame.controller;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.frame.command.RoleCommand;
+import com.frame.entity.RoleEntity;
+import com.frame.service.RoleService;
+import com.frame.utils.KVMap;
+import com.frame.utils.StringUtil;
+import com.frame.utils.pager.Pager;
+import com.frame.utils.pager.SystemContext;
+
+@RestController
+@RequestMapping("/role")
+public class RoleController {
+
+	@Autowired
+	private RoleService roleService;
+	
+	@RequestMapping(method=RequestMethod.POST)
+	public Map<String,String> createRole(@RequestBody RoleCommand cmd) throws NoSuchMethodException{
+		RoleEntity role = new RoleEntity();
+		role.setName(cmd.getName());
+		
+		roleService.create(role);
+		return new KVMap<String,String>().add("id", role.getId());
+	}
+	
+	@RequestMapping(value="/{id}",method=RequestMethod.GET)
+	public RoleEntity loadRoleById(@PathVariable String id){
+		return roleService.load(id);
+	}
+	
+	@RequestMapping(value="/{id}",method=RequestMethod.PUT)
+	public void updateRoleById(@PathVariable String id,@RequestBody RoleCommand cmd) throws NoSuchMethodException{
+		RoleEntity role = roleService.load(id);
+		role.setName(cmd.getName());
+		roleService.update(role);
+	}
+	
+	@RequestMapping(value="/page",method=RequestMethod.GET)
+	public Pager<RoleEntity> findRolePage(String name){
+		StringBuffer sbf =new StringBuffer();
+		KVMap<String, Object> parameters =new KVMap<String, Object>();
+		if(StringUtil.isNotEmpty(name)){
+			sbf.append(" and name like #{name}");
+			parameters.put("name", "%"+name+"%");
+		}
+		SystemContext.setSort("createDate");
+		SystemContext.setOrder("desc");
+		return roleService.findPage(sbf.toString(), parameters,new String[]{"name","createDate"});
+	}
+	
+	@RequestMapping(method=RequestMethod.DELETE)
+	public void deleteRoleById(@PathVariable String id) throws NoSuchMethodException{
+		RoleEntity role = roleService.load(id);
+		role.setName("delete");
+		roleService.update(role);
+	}
+	
+}

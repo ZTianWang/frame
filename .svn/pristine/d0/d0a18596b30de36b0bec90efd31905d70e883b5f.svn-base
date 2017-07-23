@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>管理</title>
+<link rel="stylesheet" href="resources/css/theme.css"  />
+<link rel="stylesheet" href="resources/css/upload.css" />
+</head>
+<body>
+<input id="startUpload"  value="开始上传"  type="button"/>
+<input id="fileUpload" name="fileUpload" type="file"/>
+
+
+<div  id="resultDiv"></div>
+ 
+<input type="button"   id="button" value="点击"  />
+<script  type="text/javascript" src="resources/js/sea.js"></script>
+
+<script type="text/html" id="uploadFileTemplate">
+ {{if attList}}
+      {{each attList }}
+ <div id="{{$value.id}}" class="uploadify-queue-item" title="{{$value.fileName}}{{$value.fileSuffix}}"><div class="cancel"> 
+	 <a class="cancelFunction" href="javascript:deleteUploadFile('{{$value.id}}','{{$value.fileUniqueId}}{{$value.fileSuffix}}');"  id="{{$value.id}}" filename="{{$value.fileUniqueId}}{{$value.fileSuffix}}">&nbsp;&nbsp;&nbsp;</a> 
+     </div><div class="uploadify-icon jpg"></div>
+     <div class="uploadify-inf"><div class="fileName">{{$value.fileName}}{{$value.fileSuffix}}</div><div class="uploadify-progress">
+     <div class="uploadify-progress-bar" style="width: 100%;"><!--Progress Bar--></div></div></div>
+     <div class="uploadify-size">{{calcSize($value.fileSize)}}<span class="data"  style="color: #5F6B69;font-size: 5px !important;margin-left: 41px ;">&nbsp;{{$value.createDate}}</span></div>
+     <input type="hidden" name="{{iniId}}" value="{{$value.id}}">
+</div> 
+    {{/each}}
+ {{/if}}
+</script>
+
+
+<script type="text/html"  id="attHtml">
+ <table border="1">
+  <tr>
+    <td>id</td>
+    <td>createDate</td>
+    <td>recordId</td>
+    <td>fileUniqueId</td>
+    <td>fileName </td>
+    <td>fileType </td>
+    <td>fileSuffix </td>
+    <td>fileSize </td>
+    <td>downloads </td>
+    <td>accountId </td>
+</tr>
+    {{if attList}}
+      {{each attList }}
+    <tr>
+    <td>{{$value.id}}</td>
+    <td>{{$value.createDate}}</td>
+    <td>{{$value.recordId}}</td>
+    <td>{{$value.fileUniqueId}}</td>
+    <td>{{$value.fileName}} </td>
+    <td>{{$value.fileType}}  </td>
+    <td>{{$value.fileSuffix}} </td>
+    <td>{{$value.fileSize}} </td>
+    <td>{{$value.downloads}}  </td>
+    <td>{{$value.accountId}} </td>
+</tr>
+        {{/each}}
+ {{/if}}
+</table>
+</script>
+
+<script type="text/javascript">
+seajs.use("account/account");
+</script>
+</body>
+</html>

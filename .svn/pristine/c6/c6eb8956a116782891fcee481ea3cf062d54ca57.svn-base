@@ -1,0 +1,47 @@
+define(function(require, exports) {
+        
+      // alert(getParameter("age"));
+       
+         
+         require.async('js/uploadify', function() {
+        	 $('#fileUpload').uploadify({
+         	    onSWFReady:function(){
+         	   	KU.send({
+            		url:'attachment/record/666',
+            		eText:'加载附件失败',
+            		success:function(data){
+            			var result={
+            					attList:data,
+            					iniId:'fileUpload',
+            					calcSize:KU.calcSize
+            			};
+            		 $('#fileUpload-queue').append(template('uploadFileTemplate',result));
+            		}
+            	}); 
+         		  
+         	    }
+         	 });
+        	 $('#startUpload').on('click', function () {
+        		    $("#fileUpload").uploadify("upload","*");
+        		  });
+        	  });
+        
+          
+         //require("js/jquery/jquery.md5");
+       
+       
+       /* $('#button').bind('click',function (){
+        	  //target('index.html');
+        	KU.send({
+        		url:'test',
+        		type:'PUT',
+        		eText:true,
+        		data:{name:'姓名',age:26},
+        		sText:'成功',
+        		success:function(data){
+        			c(data);
+        		}
+        	}); 
+        });*/
+       
+});

@@ -1,0 +1,64 @@
+package com.frame.dto;
+
+/**
+ * 
+ * 用户拥有的菜单所对应的按钮（方法）级操作
+ */
+public class FunctionsDto {
+
+	private String menuUrl;// 菜单url
+	private String name;// 方法的显示名称
+	private String flag;// 方法的标示，页面据此判断处理
+	private String url;// 方法的要执行的url
+	private String type;// 方法的http类型 GET POST PUT……
+	private int sortNum;// 方法的排序
+
+	public String getMenuUrl() {
+		return menuUrl;
+	}
+
+	public void setMenuUrl(String menuUrl) {
+		this.menuUrl = menuUrl;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getFlag() {
+		return flag;
+	}
+
+	public void setFlag(String flag) {
+		this.flag = flag;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public int getSortNum() {
+		return sortNum;
+	}
+
+	public void setSortNum(int sortNum) {
+		this.sortNum = sortNum;
+	}
+
+}

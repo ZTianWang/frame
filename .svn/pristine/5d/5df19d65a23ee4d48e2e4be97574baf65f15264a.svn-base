@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Matrix Admin</title>
+<meta charset="UTF-8" />
+<meta name="renderer" content="webkit|ie-comp|ie-stand">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="resources/css/bootstrap.min.css" />
+<link rel="stylesheet" href="resources/css/matrix-login.css" />
+<link rel="shortcut icon" href="resources/img/favicon.ico" />
+</head>
+<body class="lgBg">
+	<div id="loginbox">
+		<div class="normal_text">
+			<h3>
+				<img src="resources/img/logo.png" alt="Logo" />欢迎，请先登录
+			</h3>
+		</div>
+		<form action="#" id="loginForm" method="get" class="form-horizontal form-validator">
+			<div class="ky-statistic-form">
+				<div class="control-group">
+					<label class="control-label"> <span><i class="icon-user"></i></span>
+					</label>
+					<div class="controls">
+						<input type="text" id="account" placeholder="账号/邮箱/手机号" name="account">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label"> <span> <i class="icon-lock"></i></span>
+					</label>
+					<div class="controls">
+						<input type="password" id="password" name="password" placeholder="密码">
+					</div>
+				</div>
+			</div>
+			<div class="form-actions-ky">
+				<a class="links" href="javascript:void(0)" id="forgetPwd">忘记密码</a>
+				
+				<input type="button" id="login" class="fr btn btn-warning btn-large"  data-loading-text="正在登录..." value="登录"/>
+			</div>
+		</form>
+	</div>
+	<div class="footer">2016 &copy; Powered by SMILE.</div>
+	<script type="text/javascript" src="resources/js/sea.js"></script>
+	<script type="text/javascript">
+		seajs.use('login', function(login) {
+			login.init();
+		});
+	</script>
+</body>
+</html>

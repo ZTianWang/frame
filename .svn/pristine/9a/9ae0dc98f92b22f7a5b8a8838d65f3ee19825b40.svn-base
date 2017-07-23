@@ -1,0 +1,62 @@
+package com.frame.dto;
+
+/**
+ * 多表关联，根据角色等条件，查出来的用户拥有的菜单
+ * 
+ * @author Lxp
+ *
+ */
+public class MenusDto {
+	private String menuId;// 菜单id
+	private String parentId;// 菜单父id
+	private String menuName;// 菜单名字
+	private String url;// 菜单对应url
+	private int sortNum;// 菜单排序
+
+	@Override
+	public String toString() {
+		 
+		return  "[menuId="+menuId+",parentId="+parentId+",menuName="+menuName+",url="+url+",sortNum="+sortNum+"]";
+	}
+
+	public String getMenuId() {
+		return menuId;
+	}
+
+	public void setMenuId(String menuId) {
+		this.menuId = menuId;
+	}
+
+	public String getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
+	}
+
+	public String getMenuName() {
+		return menuName;
+	}
+
+	public void setMenuName(String menuName) {
+		this.menuName = menuName;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public int getSortNum() {
+		return sortNum;
+	}
+
+	public void setSortNum(int sortNum) {
+		this.sortNum = sortNum;
+	}
+
+}

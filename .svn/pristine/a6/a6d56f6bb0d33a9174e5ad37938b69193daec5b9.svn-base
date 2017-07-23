@@ -1,0 +1,12 @@
+ {{if attList}}
+      {{each attList }}
+ <div id="{{$value.id}}" class="uploadify-queue-item" title="{{$value.fileName}}{{$value.fileSuffix}}"><div class="cancel"> 
+	 <a class="cancelFunction"     href="javascript:$('#{{iniId}}').uploadify('cancel', '{{$value.id}}')"    id="{{$value.id}}" fileUniqueId="{{$value.fileUniqueId}}{{$value.fileSuffix}}">&nbsp;&nbsp;&nbsp;</a> 
+     </div><div class="uploadify-icon jpg"></div>
+     <div class="uploadify-inf"><div class="fileName">{{$value.fileName}}{{$value.fileSuffix}}</div><div class="uploadify-progress">
+     <div class="uploadify-progress-bar" style="width: 100%;"><!--Progress Bar--></div></div></div>
+     <div class="uploadify-size">{{calcSize($value.fileSize)}}<span class="data"  style="color: #5F6B69;font-size: 5px !important;margin-left: 41px ;">&nbsp;{{$value.createDate}}</span></div>
+     <input type="hidden" name="{{iniId}}" value="{{$value.id}}">
+</div> 
+    {{/each}}
+ {{/if}}

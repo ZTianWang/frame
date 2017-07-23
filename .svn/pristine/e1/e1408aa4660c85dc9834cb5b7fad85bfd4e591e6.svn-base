@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>管理</title>
+<link rel="stylesheet" href="resources/css/theme.css"  />
+<link rel="stylesheet" href="resources/css/upload.css" />
+</head>
+<body>
+<input id="startUpload"  value="开始上传"  type="button"/>
+<input id="fileUpload" name="fileUpload" type="file"/>
+
+
+<div  id="test"></div>
+ 
+<input type="button"   id="button" value="点击"  />
+<script  type="text/javascript" src="resources/js/sea.js"></script>
+<script type="text/html"  id="testHtml">
+<div>测试---内容{{name}}</div>
+</script>
+
+<script type="text/javascript">
+seajs.use("account/account");
+</script>
+</body>
+</html>

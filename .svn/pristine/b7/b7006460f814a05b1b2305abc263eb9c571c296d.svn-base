@@ -1,0 +1,34 @@
+package com.frame.utils.listener;
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+
+import com.frame.utils.ftp.FTPUtil;
+
+
+public class InitListener implements ApplicationListener<ContextRefreshedEvent>  {
+	private static Logger logger = LoggerFactory.getLogger(InitListener.class);
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		 //防止启动两次
+		 if(event.getApplicationContext().getParent() == null){
+		    //初始化ftp连接池
+			 initFtpListener();
+	      }
+		
+	}
+	
+	
+	public  void initFtpListener(){
+	 try {
+		FTPUtil.initFTPPool();
+		logger.info("==========================FTP初始化成功==========================");
+	} catch (Exception e) {
+		logger.warn("==========================FTP初始化失败==========================", e);
+	}
+	}
+
+}

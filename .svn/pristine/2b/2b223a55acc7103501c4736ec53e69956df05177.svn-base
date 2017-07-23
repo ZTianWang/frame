@@ -1,0 +1,25 @@
+<link rel="stylesheet" href="resources/css/upload.css" />
+<div>
+<form  id="accountForm"  name="accountForm">
+<input type="hidden" id="accountId" name="accountId" /></br>
+用户名:<input type="text" id="account"  name="account" /><br/>
+密码:<input type="text"   id="password"  name="password"><br/>
+请再次输入密码:<input type="text"   id="password_again"  name="password_again"><br/>
+手机号:<input  type="text"  id="cellPhone" name="cellPhone"></br/>
+邮箱:<input  type="text"  id="email"  name="email"></br/>
+头像上传:
+<input id="accountHeadUpload"  name="accountHeadUpload"  value="开始上传"  type="button"/>
+<button id="accountHead" name="accountHead"  type="button" class="btn btn-xs btn-default">选择</button>
+<br/>
+身份证上传
+<input id="idCardUpload"  name="idCardUpload"  value="开始上传"  type="button"/>
+<button id="idCard" name="idCard"  type="button" class="btn btn-xs btn-default">选择</button>
+<button id="goBack" >返回</button>
+<button  type="button"   submitFormId="accountForm"  id="accountSubmitBtn" class="lockControl">提交</button>
+</form>
+</div>
+<script type="text/javascript">
+seajs.use('account/edit',function(edit){
+	edit.init();
+});
+</script>

@@ -1,0 +1,157 @@
+package com.frame.service;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+import com.frame.command.AuthorizationCommand;
+import com.frame.dto.AuthorizationDto;
+import com.frame.dto.FunctionsDto;
+import com.frame.dto.MenusDto;
+import com.frame.entity.AccountEntity;
+import com.frame.enumtype.LoginSourceEnum;
+import com.frame.mapper.MenusMapper;
+import com.frame.utils.HttpCode;
+import com.frame.utils.KVMap;
+import com.frame.utils.exception.FrameException;
+
+@Service
+public class AuthorizationService {
+
+	@Autowired
+	private AccountService accountService;
+	
+	@Autowired
+	private RedisTemplate<String, Object> redisTemplate;
+	
+	@Autowired
+	private MenusMapper  menusMapper;
+
+	/**
+	 * 根据条件，判断是否存在用户
+	 * 
+	 * @param authorizationCommand
+	 */
+	public AuthorizationDto queryLogin(AuthorizationCommand cmd) {
+		KVMap<String, Object> parameter = new KVMap<String, Object>();
+		AuthorizationDto authorizationDto=new AuthorizationDto();
+		if (cmd.getType() == 0) {// 校验用户名和密码，注意此处密码是客户端已经两次md5加密
+			parameter.add("account", cmd.getAccount()).add("password",
+					cmd.getPassword());
+			List<AccountEntity> accountList = accountService.findList("account=#{account} and password=#{password}", parameter,
+					new String[] { "account" });
+			if(accountList==null){
+			      throw new FrameException("用户名或密码错误", HttpCode.NOT_FOUND); 
+			}
+			AccountEntity account=accountList.get(0);
+		       authorizationDto.setAccount(account.getAccount());
+		       authorizationDto.setAccountId(account.getId());
+		      
+		}else{
+			   throw new FrameException("无效参数", HttpCode.INVALID_PARAMETER); 
+		}
+		 String token=UUID.randomUUID().toString().replace("-", "");
+		 authorizationDto.setAuthorization(token);
+		 //如果是pc网页登录
+		 if(cmd.getSource()==LoginSourceEnum.PC.code()){
+			 redisTemplate.opsForValue().set(token, authorizationDto,60,TimeUnit.MINUTES);
+		 }else if(cmd.getSource()==LoginSourceEnum.ANDROID.code()){
+			 redisTemplate.opsForValue().set(token, authorizationDto,30,TimeUnit.DAYS);
+		 }
+		 
+		  authorizationDto.setAccountId(null);//缓存之后，不输出给调用者
+		return authorizationDto;
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	public List<Map<String,Object>>    findMenusInfoByAuthorization(String authorization){
+		AuthorizationDto authorizationDto=(AuthorizationDto) redisTemplate.opsForValue().get(authorization);
+		String accountId=authorizationDto.getAccountId();
+		List<Map<String,Object>> resultList=new ArrayList<Map<String,Object>>();
+		Map<String,Map<String,Object>>  resultMap=new HashMap<String,Map<String,Object>>();
+		List<MenusDto> menusList= menusMapper.findMenusByAccountId(accountId);
+		 for(MenusDto  menusDto:menusList){
+			 if(menusDto.getParentId()==null){//如果父id为null 
+				 //先判断map中是否已经存在，当前菜单的id
+				 Map<String,Object> tempMap=null;
+				 if(resultMap.containsKey(menusDto.getMenuId())){
+					  tempMap=resultMap.get(menusDto.getMenuId());
+				 }else{
+					 tempMap=new HashMap<String,Object>();
+				 } 
+				 tempMap.put("menuName", menusDto.getMenuName());
+				 tempMap.put("sortNum", menusDto.getSortNum());
+				 resultMap.put(menusDto.getMenuId(), tempMap);
+			 }else{//如果父id不为null
+				//如果结果map中包含了父id
+				 Map<String,Object> tempMap=null;
+				 List<Map<String,Object>>  menusDtoList=new ArrayList<Map<String,Object>>();
+				 if(resultMap.containsKey(menusDto.getParentId())){
+					 tempMap=resultMap.get(menusDto.getParentId());
+					 //如果已经包含了children
+					 if(tempMap.containsKey("children")){
+						 menusDtoList= (List<Map<String,Object>>)tempMap.get("children");
+					 } 
+				 }else{//如果不包含父类的id
+					 tempMap=new HashMap<String,Object>();
+					 resultMap.put(menusDto.getParentId(), tempMap);
+					
+				 }
+				 Map<String,Object> menusDtoMap=new HashMap<String,Object>();
+				    menusDtoMap.put("menuName",menusDto.getMenuName());
+					menusDtoMap.put("url",menusDto.getUrl());
+					menusDtoMap.put("sortNum", menusDto.getSortNum());
+					menusDtoList.add(menusDtoMap);
+				    tempMap.put("children", menusDtoList);
+			 }
+			 
+		 }
+		 resultList.addAll(resultMap.values());
+		 Collections.sort(resultList, comparator);
+		return resultList;
+	}
+	
+	public Map<String,List<Map<String,Object>>>    findFunctionsInfoByAuthorization(String authorization){
+		AuthorizationDto authorizationDto=(AuthorizationDto) redisTemplate.opsForValue().get(authorization);
+		String accountId=authorizationDto.getAccountId();
+		Map<String,List<Map<String,Object>>> resultMap=new HashMap<String,List<Map<String,Object>>>();
+		List<FunctionsDto> functionsDtoList=menusMapper.findFunctionsByAccountId(accountId);
+		for(FunctionsDto functionsDto:functionsDtoList){
+			//如果已经包含所属的菜单
+			List<Map<String,Object>>  tempList=null;
+			if(resultMap.containsKey(functionsDto.getMenuUrl())){
+				tempList=resultMap.get(functionsDto.getMenuUrl());
+			}else{
+				tempList=new ArrayList<Map<String,Object>>();
+				resultMap.put(functionsDto.getMenuUrl(), tempList);
+			} 
+			Map<String,Object> tempMap=new HashMap<String,Object>();
+			tempMap.put("name",functionsDto.getName());
+			tempMap.put("flag",functionsDto.getFlag());
+			tempMap.put("sortNum",functionsDto.getSortNum());
+			tempList.add(tempMap);
+		}
+		return resultMap;
+	}
+	
+	
+	private static Comparator<Map<String,Object>>  comparator=new Comparator<Map<String,Object>>() {
+
+		@Override
+		public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+			   int sortNum1=(int) o1.get("sortNum");
+			   int sortNum2=(int) o2.get("sortNum");
+			 return (sortNum1<sortNum2 ? -1 : (sortNum1==sortNum2 ? 0 : 1));
+		}
+	};
+}

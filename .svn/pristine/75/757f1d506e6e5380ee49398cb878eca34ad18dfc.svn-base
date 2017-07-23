@@ -1,0 +1,26 @@
+.newsHint {
+	padding: 10px 20px;
+	background: #FF704B;
+	text-align: center;
+	position: fixed;
+	top: 20%;
+	left: 50%;
+	border-radius: 3px;
+	color: #fff;
+	-webkit-animation: 0.5s shake;
+}
+
+.newsSuccess {
+	background: #5cb85c;
+}
+
+.loading {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	z-index: 2099;
+	width: 32px;
+	height: 32px;
+	background: url('../images/loading.gif') no-repeat;
+	margin: -16px -16px 0px 0px;
+}

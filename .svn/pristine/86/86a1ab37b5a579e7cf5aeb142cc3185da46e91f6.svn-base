@@ -1,0 +1,33 @@
+package com.frame.test;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.Column;
+
+import com.frame.entity.User;
+
+public class Test {
+ 
+	 
+	public static void main(String[] args) {  
+		User user=new User();
+		 user.setUserName("ok");
+	      user.setOorder(6666);
+	      user.setCreateDate(new Date());
+	 	 Field[] superFields = user.getClass().getSuperclass().getDeclaredFields();  
+	 	 Field[] entityFields = user.getClass().getDeclaredFields();  
+	 	Field[] fields=new Field[superFields.length+entityFields.length];
+	 	System.arraycopy(superFields, 0, fields, 0, superFields.length);
+		System.arraycopy(entityFields, 0, fields, superFields.length, entityFields.length);
+	        for(Field temp:fields){
+           if(temp.isAnnotationPresent(Column.class)) {
+	         System.out.println(temp.getName());
+	        	}
+	        }
+	}  
+	 
+
+}

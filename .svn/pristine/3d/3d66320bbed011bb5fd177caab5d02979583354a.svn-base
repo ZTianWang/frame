@@ -1,0 +1,22 @@
+ {{if attList}}
+      {{each attList }}
+ <div id="{{$value.id}}"  class="uploadify-queue-item" title="{{$value.fileName}}{{$value.fileSuffix}}"><div class="cancel"> 
+	 <a class="cancelFunction"     href="javascript:$('#{{btnId}}').uploadify('cancel', '{{$value.id}}')"    id="{{$value.id}}" fileUniqueId="{{$value.fileUniqueId}}{{$value.fileSuffix}}">&nbsp;&nbsp;&nbsp;</a> 
+     </div><div id="{{$value.id}}showImg"  {{$value.fileType=$value.fileSuffix.toLowerCase().substr(1);}} class="uploadify-icon {{$value.fileType}}"  {{if $value.fileType=='jpg'||$value.fileType=='jpeg'||$value.fileType=='gif'||$value.fileType=='png'||$value.fileType=='bmp'}}
+     onmouseout="removeUploadImg('{{$value.id}}');"  onmouseover="showUploadImg('{{$value.id}}');"
+    {{/if}}></div>
+     <div class="uploadify-inf"><div class="fileName"   fileName="{{$value.fileName+$value.fileSuffix}}">
+     <a href="javascript:downloadFile('{{$value.id}}');">
+     {{ if ($value.fileName+$value.fileSuffix).length>28}}
+     {{($value.fileName+$value.fileSuffix).substr(0,28)+'...'}}
+     {{else}}
+         {{$value.fileName}}{{$value.fileSuffix}}
+     {{/if}}
+     </a>
+     </div><div class="uploadify-progress">
+     <div class="uploadify-progress-bar" style="width: 100%;"><!--Progress Bar--></div></div></div>
+     <div class="uploadify-size">{{calcSize($value.fileSize)}}<span class="data"  style="color: #5F6B69;margin-left: 21px ;">&nbsp;{{$value.createDate}}</span></div>
+     <input type="hidden" name="{{btnId}}" value="{{$value.id}}">
+</div> 
+    {{/each}}
+ {{/if}}

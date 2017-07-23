@@ -1,0 +1,23 @@
+package com.frame.test;
+
+
+
+ 
+
+public class Test {
+	 
+   
+	public static void main(String[] args) throws Exception {
+		String str="^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$";
+         boolean r= "123@qq.com".matches(str);
+         System.out.println(r);
+     }
+	
+ 
+	 
+ 
+	 
+	
+	  
+   
+}

@@ -1,0 +1,127 @@
+package com.frame.mapper.base;
+
+import static org.apache.ibatis.jdbc.SqlBuilder.*;
+ 
+
+import java.lang.reflect.Field;
+import java.util.Map;
+
+import javax.persistence.Column;
+import javax.persistence.Id;
+
+import com.frame.utils.MyBatisHelper;
+
+public class MapperTemplate<T> {
+
+
+	public   String insert(T entity){
+		String key=entity.getClass()+"insertSql";
+		if(!MyBatisHelper.sqlMap.containsKey(key)){
+			Class<?> clz=entity.getClass();
+			BEGIN();
+		 
+			INSERT_INTO(MyBatisHelper.getTableName(clz)); 
+			String [] column=insertColumnList(clz);
+	        VALUES(column[0],column[1]);  
+			
+	        MyBatisHelper.sqlMap.put(key, SQL());
+		}
+		return MyBatisHelper.sqlMap.get(key);
+	}
+	
+	public  String update(T entity){
+		String key=entity.getClass()+"updateSql";
+		if(!MyBatisHelper.sqlMap.containsKey(key)){
+			Class<?> clz=entity.getClass();
+			 BEGIN();  
+	          
+			 UPDATE(MyBatisHelper.getTableName(clz));  
+ 		     SET(updateColumnList(clz));  
+     	     WHERE(id()+ "=#{" + id() + "}");  
+			
+     	    MyBatisHelper.sqlMap.put(key, SQL());
+		}
+		return MyBatisHelper.sqlMap.get(key);
+	}
+	
+	public String delete(Map<String, Object> parameter) {
+		String key=parameter.get("clz")+"deleteSql";
+		if(!MyBatisHelper.sqlMap.containsKey(key)){
+			String idname = id();
+			BEGIN();
+			DELETE_FROM(MyBatisHelper.getTableName((Class<?>)parameter.get("clz")));
+			WHERE(idname + "=#{" + idname + "}");
+			MyBatisHelper.sqlMap.put(key, SQL());
+		}
+		return MyBatisHelper.sqlMap.get(key);
+ 	}
+	
+	public String load(Map<String, Object> parameter) {
+		String key=parameter.get("clz")+"loadSql";
+		if(!MyBatisHelper.sqlMap.containsKey(key)){
+			 Class<?> clz=(Class<?>)parameter.get("clz");
+			String idname = id();
+			BEGIN();
+			SELECT(MyBatisHelper.selectColumnList(clz));
+			FROM(MyBatisHelper.getTableName(clz));
+			WHERE(idname + "=#{" + idname + "}");
+			MyBatisHelper.sqlMap.put(key, SQL());
+		}
+		return MyBatisHelper.sqlMap.get(key);
+ 	}
+
+	private String[] insertColumnList(Class<?> clz){
+		Field  [] fields=MyBatisHelper.getFields(clz);
+	        StringBuilder column = new StringBuilder();  
+	        StringBuilder field=  new StringBuilder(); 
+	        int i=0;
+	        for(Field temp:fields){
+	        	if(i++!=0){
+	        		column.append(','); 
+	        		field.append(",");
+	        	}
+	        	column.append(temp.getName()); 
+	        	field.append("#{").append(temp.getName()).append('}');  
+	        }
+	        
+          return new String[]{MyBatisHelper.camelToUnderline(column.toString()),field.toString()};
+	}
+	
+	
+	
+    public String updateColumnList(Class<?> clz) {  
+    	Field  [] fields=MyBatisHelper.getFields(clz);
+        StringBuilder sb = new StringBuilder();  
+        
+        int i=0;
+        for(Field temp:fields){
+          if(!temp.isAnnotationPresent(Id.class)&&temp.getAnnotation(Column.class).updatable()) {
+        	  String fieldName=temp.getName();
+        	     if(i++ != 0)  
+                     sb.append(',');  
+                 sb.append(MyBatisHelper.camelToUnderline(fieldName)).append("=#{").append(fieldName).append('}'); 
+	        	}
+        }
+        
+     
+        return sb.toString();  
+    }  
+	
+
+	
+	/**
+	 * 暂时直接返回id，即数据库表中的主键
+	 * 
+	 * @return
+	 */
+	private String id() {
+		// for(Field field : this.getClass().getFields()) {
+		// if(field.isAnnotationPresent(Id.class))
+		// return field.getName();
+		// }
+		return "id";
+		// throw new RuntimeException("undefine POJO @Id");
+
+	}
+
+}

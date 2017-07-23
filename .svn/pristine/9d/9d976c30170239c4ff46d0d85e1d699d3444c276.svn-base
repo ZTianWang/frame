@@ -1,0 +1,52 @@
+package com.frame.test;
+
+
+
+import java.util.Date;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.frame.entity.User;
+import com.frame.service.UserService;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+//配置了@ContextConfiguration注解并使用该注解的locations属性指明spring和配置文件之后，
+@ContextConfiguration(locations = {"classpath:spring.xml", "classpath:spring-mybatis.xml" })
+public class SpringTest {
+
+	
+	 
+    //注入userService
+    @Autowired
+    private UserService userService;
+    
+//    @Test
+//    public void testAddUser(){
+//        User user = new User();
+//        user.setUserName("测试一下");
+//        user.setOorder(999999);
+//        userService.addUser(user);
+//    }
+//    
+    @Test
+    public void testQueryUser() {
+      User user = new User();
+      user.setUserName("ok");
+      user.setOorder(6666);
+      user.setCreateDate(new Date());
+      userService.addUser(user);
+     
+//      List<User>	list=userService.queryUsers();
+//      ObjectMapper mapper = new ObjectMapper();  
+//      for(User user:list){
+//    	 String json= mapper.writeValueAsString(user);
+//    	  System.out.println(json);
+//      }
+    }
+    
+   
+}

@@ -1,0 +1,26 @@
+
+define(function(require,exports, module){
+	require('pager');//使用分页
+	function  query(){//定义查询方法
+		KU.send({
+			url : 'account/page',
+			eText:true,/*根据状态码自动提示错误信息*/
+			data:{
+			  account:$('#account').val(),
+			  cellphone:$('#cellphone').val(),
+			  email:$('#email').val()
+			  },
+			success:function(data){
+				  $("#resultTable").html(template('listHtml',data));/*填充页面数据*/
+				   data.query=query;
+				  $("#pager").pager(data);
+			}
+		});
+	};
+	
+	query();//默认直接查询
+
+   $('#searchBtn').on('click', function () {
+	    query();
+   });
+});

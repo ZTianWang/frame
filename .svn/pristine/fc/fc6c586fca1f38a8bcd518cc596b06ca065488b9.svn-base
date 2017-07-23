@@ -1,0 +1,27 @@
+package com.frame.test;
+
+import java.lang.reflect.Field;
+import java.security.NoSuchAlgorithmException;
+
+import javax.persistence.Column;
+
+import com.frame.entity.User;
+import com.frame.utils.mybatis.MyBatisHelper;
+
+public class Test {
+	public static void main(String[] args) throws NoSuchAlgorithmException  {
+//		 
+//	 String sql=".mapper.base.BaseMapper.findTest:0:2147483647:select * from t_user  where 11==limie";
+//	 if(sql.indexOf("where")!=-1){
+//		 sql=sql.substring(sql.indexOf("from")+4,sql.indexOf("where"));
+//	 }else{
+//		 sql=sql.substring(sql.indexOf("from")+4);
+//	 }
+//	 System.out.println(sql.replace(" ",""));
+	 
+		Field  [] fields=MyBatisHelper.getFields(User.class);
+		 
+		}
+	  
+   
+}

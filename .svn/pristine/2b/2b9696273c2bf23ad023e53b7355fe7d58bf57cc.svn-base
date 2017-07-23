@@ -1,0 +1,424 @@
+package com.frame.service.base;
+
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.ibatis.session.ResultContext;
+import org.apache.ibatis.session.ResultHandler;
+import org.crazycake.utils.CamelNameUtils;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+
+import com.frame.entity.base.BaseEntity;
+import com.frame.mapper.base.BaseMapper;
+import com.frame.utils.HttpCode;
+import com.frame.utils.KVMap;
+import com.frame.utils.ReflectUtil;
+import com.frame.utils.StringUtil;
+import com.frame.utils.annotation.Version;
+import com.frame.utils.exception.FrameException;
+import com.frame.utils.mybatis.MyBatisHelper;
+import com.frame.utils.pager.Pager;
+import com.frame.utils.pager.SystemContext;
+
+public class BaseService<T extends BaseEntity> {
+
+	Logger  logger=LoggerFactory.getLogger(BaseService.class);
+	@Autowired
+	private BaseMapper baseMapper;
+	private Class<?> clz;
+	@Autowired
+	private SqlSessionTemplate sqlSession;
+	@Autowired
+	@Qualifier("redisDBCache") 
+	private RedisTemplate<String, T> redisDBCache;
+	private int defaultExpiration=7;//默认过期时间
+	private String mappingPath = BaseMapper.class.getName();
+    private String clzNamequery=getClz().getName()+":"+"query";
+	private Class<?> getClz() {
+
+		if (clz == null) {
+			// 获取泛型的Class对象
+			clz = ((Class<?>) (((ParameterizedType) (this.getClass().getGenericSuperclass()))
+					.getActualTypeArguments()[0]));
+		}
+		return clz;
+	}
+	/**
+	 * 如果在任意service中自定义了和此Entity相关的cache存储，一定要在对应Entity的service中覆盖此方法，且返回的Set中必须包含定义的缓存key
+	 * @return
+	 */
+	protected  Set<String> definedCacheKeys() {
+		return null;
+	}
+	
+    /**
+     * 如果在service中进行了自定义的增加、删除、修改操作，请使用super.deleteCacheKey();
+     */
+	protected void deleteCacheKeys() {
+		Set<String> keys=definedCacheKeys();
+		if(keys==null){
+			redisDBCache.delete(clzNamequery);
+		}else{
+			 keys.add(clzNamequery);
+			 redisDBCache.delete(keys);
+		}
+		   
+	}
+    
+	/**
+	 * 增加
+	 * @param entity
+	 */
+	public void create(T entity) {
+		if(baseMapper.insert(entity)!=0){
+			deleteCacheKeys();
+			redisDBCache.opsForHash().putAll(entity.getId(), ReflectUtil.object2Map(entity));
+			redisDBCache.expire(entity.getId(), defaultExpiration, TimeUnit.HOURS);
+		}else{
+			throw new FrameException("操作失败");
+		}
+	}
+
+	/**
+	 * 更新整个对象，需要先load出对象，修改后再传入
+	 * @param entity
+	 */
+	public void update(T entity) {
+		if(getClz().isAnnotationPresent(Version.class)){
+			Map<String,Object> obj2map=ReflectUtil.object2Map(entity);
+			HashOperations<String, String, Object> opsForHash =redisDBCache.opsForHash();
+			String version_key=getClz().getAnnotation(Version.class).value();
+//			int vVersion=(int)opsForHash.get(entity.getId(), version_key);
+			int vVersion=(int)ReflectUtil.object2MapByProperty(load(entity.getId()), new String[]{version_key}).get(version_key);
+			int version=(int) obj2map.get(version_key);//取得传来的version校验
+			if(version!=vVersion){//校验是否一致
+				throw new FrameException("数据version版本不匹配", HttpCode.VERSION_MATCH);
+			}else{
+				obj2map.put(version_key, vVersion+1);
+				obj2map.put("where_version", vVersion);
+				obj2map.put("clz", getClz());
+		     if(baseMapper.updateByVersion(obj2map)==0){
+			   throw new FrameException("数据更新与其他用户发生冲突", HttpCode.VERSION_MATCH);
+		     }else{
+		    	 deleteCacheKeys();
+		    	 obj2map.remove("where_version");
+		    	 obj2map.remove("clz");
+		    	 opsForHash.putAll(entity.getId(),obj2map);
+		     }
+		 
+		 }
+		
+		}else{
+			if(baseMapper.update(entity)!=0){
+				deleteCacheKeys();
+				redisDBCache.opsForHash().putAll(entity.getId(), ReflectUtil.object2Map(entity));
+			}
+//			else{
+//				throw new FrameException("操作失败");
+//			}
+		}
+		
+	}
+	
+  
+	
+	/**
+	 * 根据指定的字段，更新数据
+	 * @param entity 对象
+	 * @param columns 指定的字段
+	 */
+	public void update(T entity,String [] columns){
+		Map<String, Object> obj2map=ReflectUtil.object2MapByProperty(entity, columns);
+		obj2map.put("columns", columns);
+		obj2map.put("clz", getClz());
+		obj2map.put("id", entity.getId());
+		if(getClz().isAnnotationPresent(Version.class)){
+			HashOperations<String, String, Object> opsForHash =redisDBCache.opsForHash();
+			String version_key=getClz().getAnnotation(Version.class).value();
+//			int vVersion=(int)opsForHash.get(entity.getId(), version_key);
+			int vVersion=(int)ReflectUtil.object2MapByProperty(load(entity.getId()), new String[]{version_key}).get(version_key);
+			int version=(int) obj2map.get(version_key);//取得传来的version校验
+			if(version!=vVersion){//校验是否一致
+				throw new FrameException("数据version版本不匹配", HttpCode.VERSION_MATCH);
+			}else{
+				obj2map.put(version_key, vVersion+1);
+				obj2map.put("where_version", vVersion);
+		     if(baseMapper.updateColumnsByVersion(obj2map)==0){
+			   throw new FrameException("数据更新与其他用户发生冲突", HttpCode.VERSION_MATCH);
+		     }else{
+		    	 deleteCacheKeys();
+		    	 obj2map.remove("columns");
+		    	 obj2map.remove("where_version");
+		    	 obj2map.remove("clz");
+		    	 opsForHash.putAll(entity.getId(),obj2map);
+		     }
+		 
+		 }
+		}else{
+			if(baseMapper.updateColumns(obj2map)!=0){
+				deleteCacheKeys();
+				obj2map.remove("columns");
+				obj2map.remove("clz");
+				redisDBCache.opsForHash().putAll(entity.getId(),obj2map);
+			}
+//			else{
+//				 throw new FrameException("操作失败");
+//			}
+		}
+		
+	}
+
+	/**
+	 * 根据单个id删除数据
+	 * @param id
+	 */
+	public void delete(String id) {
+		if(baseMapper.delete(new KVMap<String, Object>().add("id", id).add("clz", getClz()))!=0){
+			deleteCacheKeys();
+			redisDBCache.delete(id);
+		}
+	}
+	/**
+	 * 根据多个id删除数据
+	 * @param ids
+	 */
+	public void delete(String [] ids){
+		if(ids==null||ids.length==0){
+			return;
+		}
+		 baseMapper.deleteByIds(new KVMap<String, Object>().add("ids", ids).add("clz", getClz()));
+		 deleteCacheKeys();
+		 redisDBCache.delete(Arrays.asList(ids));
+	}
+
+	/**
+	 * 根据id进行load
+	 * @param id
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public T load(String id) {
+		 HashOperations<String, String, Object> opsForHash=redisDBCache.opsForHash();
+		Map<String, Object> redisMap= opsForHash.entries(id);
+		if (redisMap.size()!=0) {
+			return (T) ReflectUtil.map2Object(redisMap, getClz());
+		} else {
+			Map<String, Object> resultMap = baseMapper
+					.load(new KVMap<String, Object>().add("id", id).add("clz", getClz()));
+			if (resultMap != null) {
+				try {
+					T t= (T) ReflectUtil.map2ObjectByUnderscore2camel(resultMap, getClz());
+					redisDBCache.opsForHash().putAll(id, ReflectUtil.map2MapByUnderscore2camel(resultMap));
+					redisDBCache.expire(id, defaultExpiration, TimeUnit.HOURS);
+					return t;
+				} catch (Exception  e) {
+					throw new FrameException(id+"load错误",e);
+				}
+
+			}
+		}
+		return null;
+	}
+	
+	
+	
+	public int count(String condition, KVMap<String, Object> parameter){
+		return count(condition,parameter,true);
+	}
+ 
+    /**
+     * 必须指定条件进行count，不要包含order by
+     * @param condition where后面的条件对象
+     * @param parameter 参数
+     * @return 结果
+     */
+	private int count(String condition, KVMap<String, Object> parameter,boolean camel2underline) {
+		StringBuilder sql = new StringBuilder("select count(id) from ");
+		sql.append(MyBatisHelper.getTableName(getClz()));
+		if (StringUtil.isNotEmpty(condition)) {
+			condition=MyBatisHelper.getCondition(condition);
+			sql.append(" where ");
+			if(camel2underline)
+				sql.append(StringUtil.camel2underline(condition));
+			else
+				sql.append(condition);
+		}
+		if (parameter == null) {
+			parameter = new KVMap<String, Object>();
+		}
+
+		return count(parameter.add("sql", sql), MyBatisHelper.generateKey(sql, parameter));
+	}
+	
+	
+
+
+	private int count(KVMap<String, Object> parameter, String generateKey) {
+		Integer num = (Integer) redisDBCache.opsForHash().get(clzNamequery, generateKey);
+		if (num == null) {
+			num = baseMapper.count(parameter);
+			redisDBCache.opsForHash().put(clzNamequery, generateKey, num);
+			redisDBCache.expire(clzNamequery, defaultExpiration, TimeUnit.HOURS);
+		}
+		return num;
+
+	}
+
+ 
+	public List<T> findList(String condition,KVMap<String, Object> parameter,String [] columns){
+		return findListBySql(condition,parameter,columns);
+	}
+	public List<T> findList(String condition,KVMap<String, Object> parameter){
+		return findListBySql(condition,parameter,null);
+	}
+	
+	
+	private List<T> findListBySql(String condition,KVMap<String, Object> parameter,String [] columns){
+		StringBuilder sql = new StringBuilder("select ");
+		if(columns!=null){
+			sql.append("id ");
+			for(String column:columns){
+					sql.append(',').append(CamelNameUtils.camel2underscore(column));
+			}
+		}else{
+			sql.append(MyBatisHelper.selectColumnList(getClz()));
+		}
+		sql.append(" from ")  
+				.append(MyBatisHelper.getTableName(getClz()));
+		if (condition != null) {
+			condition=MyBatisHelper.getCondition(condition);
+			sql.append(" where ").append(StringUtil.camel2underline(condition));
+		}
+		if (parameter == null) {
+			parameter = new KVMap<String, Object>();
+		}
+	return findList(parameter.add("sql", sql), MyBatisHelper.generateKey(sql,parameter));
+	}
+	
+
+ 
+    /**
+     * 指定条件、参数、列名
+     * @param condition where后面的条件
+     * @param parameter 参数
+     * @param columns 列名
+     * @return pager对象
+     */
+	public Pager<T> findPage(String condition, KVMap<String, Object> parameter,String [] columns) {
+		
+		return findPageBySql(condition, parameter,columns);
+	}
+	
+	/**
+	 * 指定条件、参数，查询所有列名
+	 * @param condition 条件
+	 * @param parameter 参数
+	 * @return pager对象
+	 */
+    public Pager<T> findPage(String condition, KVMap<String, Object> parameter) {
+		
+		return findPageBySql(condition, parameter,null);
+	}
+	
+	 
+	private Pager<T> findPageBySql(String condition, KVMap<String, Object> parameter,String [] columns) {
+		Pager<T> pager = new Pager<T>();
+		int pageSize=SystemContext.getPageSize();
+		pager.setSize(pageSize);
+		int offset = SystemContext.getPageOffset();
+		pager.setOffset(offset);
+		if (StringUtil.isNotEmpty(condition)) {
+			condition=StringUtil.camel2underline(MyBatisHelper.getCondition(condition));
+			}
+		int total = count(condition, parameter,false);
+		if (total==0||offset >= total) {//如果查询起始位置大于等于总条数，则直接返回，正常操作下不会发生
+			pager.setData(new ArrayList<T>());
+			return pager;
+		}
+		pager.setTotal(total);
+		pager.setPagesCount((total-1)/pageSize+1);
+		
+			StringBuilder sql = new StringBuilder("select ");
+			if(columns!=null){
+				sql.append("id ");
+				for(String column:columns){
+						sql.append(',').append(CamelNameUtils.camel2underscore(column));
+				}
+			}else{
+				sql.append(MyBatisHelper.selectColumnList(getClz()));
+			}
+			sql.append(" from ")
+					.append(MyBatisHelper.getTableName(getClz()));
+			if (StringUtil.isNotEmpty(condition)) {
+				sql.append(" where ").append(condition);
+			}
+			if (parameter == null) {
+				parameter = new KVMap<String, Object>();
+			}
+			 String sort=SystemContext.getSort();
+			 String order=SystemContext.getOrder();
+			 if(sort!=null&&order!=null){
+				 String [] sortArray=sort.split(",");
+				 String [] orderArray=order.split(",");
+				 sql.append(" order by ");
+				 for(int i=0;i<sortArray.length;i++){
+					 sql.append(CamelNameUtils.camel2underscore(sortArray[i])).append(" ").append(orderArray[i]);
+					 if(i<sortArray.length-1)sql.append(",");
+				 }
+			 }
+			
+			sql.append(" limit ").append(offset).append(",").append(pageSize);
+		return findPageList(parameter.add("sql", sql), MyBatisHelper.generateKey(sql,parameter), pager);
+	}
+	
+	
+	private  Pager<T> findPageList(KVMap<String, Object> parameter,String generateKey,Pager<T> pager){
+		List<T> list=  findList(parameter, generateKey);   
+	           pager.setData(list);
+	    return pager;
+ }
+     
+	/**
+	 * 根据sql和参数，查询列表
+	 * @param parameter  包含sql和参数的map
+	 * @param generateKey  根据sql和参数生成的md5值
+	 * @return list集合
+	 */
+	@SuppressWarnings("unchecked")
+	private List<T> findList(KVMap<String, Object> parameter,String generateKey){
+		List<T> list=   (List<T>) redisDBCache.opsForHash().get(clzNamequery, generateKey);
+		 if(list==null){
+				try {
+					final List<T> dbList=new ArrayList<T>();
+					sqlSession.select(mappingPath + ".selectList", parameter, new ResultHandler() {
+						@Override
+						public void handleResult(ResultContext context) {
+								Map<String, Object> resultMap = (Map<String, Object>) context.getResultObject();
+								T t= (T) ReflectUtil.map2ObjectByUnderscore2camel(resultMap, getClz());
+								dbList.add(t);
+						}
+					});
+					list=dbList;
+					redisDBCache.opsForHash().put(clzNamequery, generateKey,list);
+					redisDBCache.expire(clzNamequery, defaultExpiration, TimeUnit.HOURS);
+				} catch (Exception e) {
+					 list=new ArrayList<T>();
+				}
+		 } 
+		 return list;
+	}
+	
+	
+
+}

@@ -1,0 +1,20 @@
+package com.frame.service;
+
+import java.util.List;
+
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
+
+import com.frame.entity.Card;
+import com.frame.entity.User;
+import com.frame.service.base.BaseService;
+ 
+public class CardService extends BaseService<Card> {
+	
+	@Cacheable(value="card")
+	public List<Card> findCards(){
+		String sql="select *  from  t_user left join t_card";
+		return null;
+	}
+
+}

@@ -1,0 +1,11 @@
+package com.frame.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import com.frame.entity.AccountEntity;
+
+public interface AccountMapper {
+	public List<AccountEntity> findAccount(Map<String,Object> parameter);
+
+}

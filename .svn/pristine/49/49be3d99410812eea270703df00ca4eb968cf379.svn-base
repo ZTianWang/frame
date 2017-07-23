@@ -1,0 +1,14 @@
+package com.frame.service;
+
+import org.springframework.stereotype.Service;
+
+import com.frame.entity.Attachment;
+import com.frame.service.base.BaseService;
+
+/**
+ * 上传文件业务类
+ */
+@Service
+public class AttachmentService  extends  BaseService<Attachment>{
+
+}

@@ -1,0 +1,62 @@
+package com.frame.test;
+
+
+
+
+import java.util.Date;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.frame.entity.User;
+import com.frame.service.UserService;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+//配置了@ContextConfiguration注解并使用该注解的locations属性指明spring和配置文件之后，
+@ContextConfiguration(locations = {"classpath:spring.xml", "classpath:spring-mybatis.xml" })
+public class SpringTest {
+
+	
+	 
+    //注入userService
+    @Autowired
+    private UserService userService;
+    
+//    @Test
+//    public void testAddUser(){
+//        User user = new User();
+//        user.setUserName("测试一下");
+//        user.setOorder(999999);
+//        userService.addUser(user);
+//    }
+//    
+    @Test
+    public void testQueryUser() {
+//      User user = new User();
+//      user.setId("37e5dbaa2ebe41dd8a0c528af3a924bb");
+//      user.setUserName("hahha++!!!");
+//      user.setOorder(888888);
+//      user.setCreateDate(new Date());
+      userService.delete("37e5dbaa2ebe41dd8a0c528af3a924bb");
+//      userService.update(user);
+//    	  user=userService.loadUser("37e5dbaa2ebe41dd8a0c528af3a924ae");
+//    	System.out.println(user);
+//    	System.out.println(user.getId());
+//    	System.out.println(user.getUserName());
+//    	System.out.println(user.getOorder());
+//    	System.out.println(user.getCreateDate());
+//       userService.add(user);
+//       userService.delete("6002560aee6d471e85cb448fa17b2d7d");
+//      List<User>	list=userService.queryUsers();
+//      ObjectMapper mapper = new ObjectMapper();  
+//      for(User user:list){
+//    	 String json= mapper.writeValueAsString(user);
+//    	  System.out.println(json);
+//      }
+    }
+    
+   
+}

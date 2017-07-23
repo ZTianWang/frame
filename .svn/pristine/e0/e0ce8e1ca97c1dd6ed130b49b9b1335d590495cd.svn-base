@@ -1,0 +1,272 @@
+package com.frame.service.base;
+
+import java.lang.reflect.ParameterizedType;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.ibatis.session.ResultContext;
+import org.apache.ibatis.session.ResultHandler;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+
+import com.frame.entity.base.BaseEntity;
+import com.frame.mapper.base.BaseMapper;
+import com.frame.utils.KVMap;
+import com.frame.utils.SecurityUtil;
+import com.frame.utils.mybatis.MyBatisHelper;
+import com.frame.utils.pager.Pager;
+import com.frame.utils.pager.SystemContext;
+
+public class BaseService<T extends BaseEntity> {
+
+	@Autowired
+	private BaseMapper baseMapper;
+	private Class<?> clz;
+	@Autowired
+	private SqlSessionTemplate sqlSession;
+	@Autowired
+	private RedisTemplate<String, T> redisTemplate;
+
+	private String mappingPath = BaseMapper.class.getName();
+    private String clzName=getClz().getName();
+	private Class<?> getClz() {
+
+		if (clz == null) {
+			// 获取泛型的Class对象
+			clz = ((Class<?>) (((ParameterizedType) (this.getClass().getGenericSuperclass()))
+					.getActualTypeArguments()[0]));
+		}
+		return clz;
+	}
+	/**
+	 * 关联的需要删除的缓存的key的数组
+	 * @return
+	 */
+	protected  Set<String> otherCacheKeys() {
+		return new HashSet<String>();
+	}
+	
+ 
+	private void deleteKey() {
+		Set<String> keys=otherCacheKeys();
+		    keys.add(clzName);
+			redisTemplate.delete(keys);
+	}
+
+	public void add(T entity) {
+		baseMapper.insert(entity);
+		redisTemplate.opsForValue().set(entity.getId(), entity);
+		deleteKey();
+	}
+
+	public void update(T entity) {
+		baseMapper.update(entity);
+		redisTemplate.opsForValue().set(entity.getId(), entity);
+		deleteKey();
+	}
+
+	public void delete(String id) {
+		baseMapper.delete(new KVMap<String, Object>().add("id", id).add("clz", getClz()));
+		redisTemplate.delete(id);
+		deleteKey();
+	}
+
+	@SuppressWarnings("unchecked")
+	public T load(String id) {
+		T t = redisTemplate.opsForValue().get(id);
+		if (t != null) {
+			return t;
+		} else {
+			Map<String, Object> resultMap = baseMapper
+					.load(new KVMap<String, Object>().add("id", id).add("clz", getClz()));
+			if (resultMap != null) {
+				try {
+					T obj = (T) getClz().newInstance();// 反射得到泛型对象
+					MyBatisHelper.copyProp(obj, resultMap);// 复制属性
+					redisTemplate.opsForValue().set(id, obj);
+					return obj;
+				} catch (InstantiationException | IllegalAccessException e) {
+					e.printStackTrace();
+					return null;
+				}
+
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 必须写条件
+	 * 
+	 * @param condition
+	 *            条件语句
+	 * @param parameter
+	 *            对应参数
+	 * @return
+	 */
+
+	public int count(String condition, KVMap<String, Object> parameter) {
+		StringBuilder sql = new StringBuilder("select count(id) from ");
+		sql.append(MyBatisHelper.getTableName(getClz()));
+		if (condition != null) {
+			sql.append(" where ").append(condition);
+		}
+		if (parameter == null) {
+			parameter = new KVMap<String, Object>();
+		}
+
+		return count(parameter.add("sql", sql), generateKey(sql, parameter));
+	}
+
+	private String generateKey(StringBuilder sql, KVMap<String, Object> parameter) {
+		String keyRs = sql.toString();
+		if (parameter.size() != 1) {
+			StringBuilder generateKey = new StringBuilder(sql);
+			generateKey.append(":");
+			for (String tempKey : parameter.keySet()) {
+				if (!tempKey.equals("sql")) {
+					generateKey.append(tempKey).append(":").append(String.valueOf(parameter.get(tempKey))).append(":");
+				}
+
+			}
+			keyRs = generateKey.toString();
+		}
+		try {
+			return SecurityUtil.md5(keyRs);
+		} catch (NoSuchAlgorithmException e) {
+			return keyRs;
+		}
+
+	}
+
+	private int count(KVMap<String, Object> parameter, String generateKey) {
+		Integer num = (Integer) redisTemplate.opsForHash().get(clzName, generateKey);
+		if (num == null) {
+			num = baseMapper.count(parameter);
+			redisTemplate.opsForHash().put(clzName, generateKey, num);
+		}
+		return num;
+
+	}
+
+	/*	*//** 不允许直接从数据库中查询列表，数据量大时，极容易内存溢出
+	 * 查询列表,必须跟查询条件和参数，如果条件和参数为空，则返回null
+	 * 
+	 * @param condition
+	 *            条件语句 1.列名需要和数据库字段名一模一样 2.占位符名 需要和 parameter 中的key一模一样
+	 * @param parameter
+	 *            K-V参数
+	 * @return 结果集合
+	 */
+	/*
+	 * @Deprecated
+	private List<T> findList(String condition, KVMap<String, Object> parameter) {
+
+		if (parameter == null || condition == null) {
+			return null;
+		}
+
+		try {
+			final List<T> list = new ArrayList<T>();
+			StringBuilder sql = new StringBuilder("select ");
+			sql.append(MyBatisHelper.selectColumnList(getClz())).append(" from ")
+					.append(MyBatisHelper.getTableName(getClz()));
+			sql.append(" where ").append(condition);
+			parameter.put("sql", sql.toString());
+			
+			sqlSession.select(BaseMapper.class.getName() + ".selectList", parameter, new ResultHandler() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public void handleResult(ResultContext context) {
+					try {
+						Map<String, Object> resultMap = (Map<String, Object>) context.getResultObject();
+						T obj = (T) getClz().newInstance();
+						MyBatisHelper.copyProp(obj, resultMap);
+						list.add(obj);
+					} catch (InstantiationException | IllegalAccessException e) {
+						return;
+					}
+				}
+			});
+			return list.size() != 0 ? list : null;
+		} catch (Exception e) {
+			return null;
+		}
+
+	}*/
+
+ 
+	 
+	public Pager<T> findPage(String condition, KVMap<String, Object> parameter) {
+		Pager<T> pager = new Pager<T>();
+		int pageSize=SystemContext.getPageSize();
+		pager.setSize(pageSize);
+		int offset = SystemContext.getPageOffset();
+		pager.setOffset(offset);
+		int total = count(condition, parameter);
+		pager.setTotal(total);
+		if (offset >= total) {//如果查询起始位置大于等于总条数，则直接返回，正常操作下不会发生
+			return pager;
+		}
+			StringBuilder sql = new StringBuilder("select ");
+			sql.append(MyBatisHelper.selectColumnList(getClz())).append(" from ")
+					.append(MyBatisHelper.getTableName(getClz()));
+			if (condition != null) {
+				sql.append(" where ").append(condition);
+			}
+			if (parameter == null) {
+				parameter = new KVMap<String, Object>();
+			}
+			 String sort=SystemContext.getSort();
+			 String order=SystemContext.getOrder();
+			 if(sort!=null&&order!=null){
+				 String [] sortArray=sort.split(",");
+				 String [] orderArray=order.split(",");
+				 sql.append(" order by ");
+				 for(int i=0;i<sortArray.length;i++){
+					 sql.append(sortArray[i]).append(" ").append(orderArray[i]);
+					 if(i<sortArray.length-1)sql.append(",");
+				 }
+			 }
+			
+			sql.append(" limit ").append(offset).append(",").append(pageSize);
+		return findPage(parameter.add("sql", sql), generateKey(sql,parameter), pager);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private  Pager<T> findPage(KVMap<String, Object> parameter,String generateKey,Pager<T> pager){
+		List<T> list=   (List<T>) redisTemplate.opsForHash().get(clzName, generateKey);
+	 if(list==null){
+			try {
+				final List<T> dbList=new ArrayList<T>();
+				sqlSession.select(mappingPath + ".selectList", parameter, new ResultHandler() {
+					@Override
+					public void handleResult(ResultContext context) {
+						try {
+							Map<String, Object> resultMap = (Map<String, Object>) context.getResultObject();
+							T obj = (T) getClz().newInstance();
+							MyBatisHelper.copyProp(obj, resultMap);
+							dbList.add(obj);
+						} catch (InstantiationException | IllegalAccessException e) {
+							return;
+						}
+					}
+				});
+				list=dbList;
+				redisTemplate.opsForHash().put(clzName, generateKey,list);
+			} catch (Exception e) {
+				return pager;
+			}
+	 } 
+	   if (list.size() > 0) {
+			pager.setData(list);
+		}
+	 return pager;
+ }
+
+}

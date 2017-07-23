@@ -1,0 +1,48 @@
+package com.frame.service;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.frame.command.AuthorizationCommand;
+import com.frame.dto.AuthorizationDto;
+import com.frame.entity.Account;
+import com.frame.utils.HttpCode;
+import com.frame.utils.KVMap;
+import com.frame.utils.exception.FrameException;
+
+@Service
+public class AuthorizationService {
+
+	@Autowired
+	private AccountService accountService;
+
+	/**
+	 * 根据条件，判断是否存在用户
+	 * 
+	 * @param authorizationCommand
+	 */
+	public AuthorizationDto login(AuthorizationCommand cmd) {
+		KVMap<String, Object> parameter = new KVMap<String, Object>();
+		AuthorizationDto authorizationDto=new AuthorizationDto();
+		if (cmd.getType() == 0) {// 校验用户名和密码，注意此处密码是客户端已经两次md5加密
+			parameter.add("account", cmd.getAccount()).add("password",
+					cmd.getPassword());
+			List<Account> accountList = accountService.findList("account=#{account} and password=#{password}", parameter,
+					new String[] { "account" });
+			if(accountList==null){
+			      throw new FrameException("用户名或密码错误", HttpCode.NOT_FOUND); 
+			}
+			Account account=accountList.get(0);
+		       authorizationDto.setAccount(account.getAccount());
+		      
+		}else{
+			   throw new FrameException("无效参数", HttpCode.INVALID_PARAMETER); 
+		}
+		String token=UUID.randomUUID().toString().replace("-", "");
+		 authorizationDto.setAuthorization(token);
+		return authorizationDto;
+	}
+}

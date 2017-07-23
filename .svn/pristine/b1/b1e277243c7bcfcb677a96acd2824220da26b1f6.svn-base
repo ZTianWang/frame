@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans    
+    http://www.springframework.org/schema/beans/spring-beans-4.2.xsd    
+    http://www.springframework.org/schema/tx    
+    http://www.springframework.org/schema/tx/spring-tx-4.2.xsd   
+    http://www.springframework.org/schema/context   
+    http://www.springframework.org/schema/context/spring-context-4.2.xsd 
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop-4.2.xsd  
+    http://www.springframework.org/schema/mvc   
+    http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+    http://www.springframework.org/schema/task
+    http://www.springframework.org/schema/task/spring-task-4.2.xsd">
+	<!-- Spring MVC配置 -->
+	<!--扫描注解 -->
+	<context:component-scan base-package="com.frame.controller" />
+	<!--默认的mvc注解映射的支持 -->
+	<mvc:annotation-driven />
+	<!-- 支持异步方法执行 -->
+	<task:annotation-driven />
+
+	<bean id="jspViewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<bean id="exceptionResolver" class="com.frame.utils.exception.FrameExceptionHandler">
+		<property name="defaultErrorView" value="error"></property>
+		<property name="exceptionMappings">
+			<props>
+				<prop key="com.frame.utils.exception.FrameException">error</prop>
+			</props>
+		</property>
+	</bean>
+
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<bean id="authInterceptor" class="com.frame.utils.interceptor.AuthInterceptor">
+				<property name="authorizationService" ref="authorizationService" />
+				<property name="defaultPageSize" value="10" />
+				<!--未登录直接允许访问的uri-http请求类型 -->
+				<property name="allowUriNotLoggedIn">
+					<set>
+						<value>/authorization-POST</value>
+						<value>/upload/uploadFile-POST</value>
+					</set>
+				</property>
+				<!--登录之后直接允许访问的uri-http类型 -->
+				<property name="allowUriLoggedIn">
+					<set>
+						<value>/authorization/roles-GET</value>
+						<value>/authorization/exit-DELETE</value>
+						<value>/attachment/record/{id}-GET</value>
+						<value>/upload/{id}-DELETE</value>
+					</set>
+				</property>
+			</bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 设置上传文件的最大尺寸为1MB -->
+		<property name="maxUploadSizePerFile">
+			<value>1048576</value>
+		</property>
+	</bean>
+
+</beans>

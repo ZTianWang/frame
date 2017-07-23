@@ -1,0 +1,94 @@
+define(function(require, exports) {
+	require('jvalid');// 引入jquery校验组件
+	require('jform');/* 引入jqueryForm相关js */
+	var rules = {
+		account : {
+			required : true,
+			requiredText : '账号不能为空',
+			maxlength : 15,
+			maxlengthText : '最长{0}个字符',
+		},
+		password : {
+			required : true,
+			maxlength : 12,
+			maxlengthText : '最长{0}个字符',
+		},
+		password_again : {
+			equalTo : "#password",
+		},
+		cellPhone : {
+			required : true,
+			mobile : true
+		},
+		email : {
+			required : true,
+			email : true
+		}
+	};
+	/* 页面初始化方法 */
+	exports.init = function() {
+		/*先把参数id放进隐藏域，后续处理时，如果隐藏域内容为空，则说明是新增，否则就是修改*/
+	var accountId=getParameter('accountId');
+	    accountId&&$('#accountId').val(accountId);
+		/*初始化加载校验组件及操作*/
+		$('#accountForm').validForm(
+				rules,
+				function(form) {
+					var formJson = $("#accountForm").serializeJson(
+							[ 'password_again', 'accountHeadFile' ]);
+					require.async('js/jquery/jquery.md5', function() {
+						formJson['password'] = $.md5($
+								.md5(formJson['password']));
+						formJson['accountHeadFile'] = $(
+								'input[name="accountHeadFile"]').arrayVal();
+						KU.send({
+							url : 'account',
+							type : 'POST',
+							data : formJson,
+							success : function(data) {
+								window.history.go(-1);
+							}
+						});
+					});
+
+				});
+
+		/**
+		 * 初始化加载上传组件及操作
+		 */
+		require.async('js/uploadify', function() {
+			var btnId = 'accountHead';
+			$('#' + btnId).uploadify({
+				formData:{
+					recordId:accountId?accountId:'',
+					fileType:2
+				},
+				onSWFReady : function() {
+					$('#startAccountHeadUpload').on('click', function() {
+						$('#' + btnId).uploadify('upload', '*');
+					});
+					/*如果有主键，则表明是编辑，否则就是新增，当编辑时才查找是否有附件并且回显*/
+					if(accountId){
+					      KU.send({ 
+							  url:'attachment/record/'+accountId,
+							  eText:'加载附件失败',
+						     success:function(data){ 
+						    	 var result={ attList:data,
+						             iniId:btnId, 
+						             calcSize:KU.calcSize,
+						             };
+						     if(result.attList&&result.attList.length>=2){
+						        $('#'+btnId).uploadify('disable', true); 
+						     } 
+						     var render=template.compile(require('resources/uploadTpl.html'));
+						     var html=render(result);
+						    $('#'+btnId+'-queue').append(html); 
+						  } 
+						});  
+					}
+                
+				}
+			});
+		});
+	}
+});

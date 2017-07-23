@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<script type="text/javascript" src="/resources/js/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="/resources/js/jquery/jquery.history.min.js"></script>
+<title>测试jquery</title>
+<script type="text/javascript">
+$(function() {
+	$.History.bind(function(state){
+		if(state){
+			var q=state.indexOf('?');
+			if(q!=-1){
+				state=state.substring(0,q);
+			}
+			$('#contentDiv').load('/'+state+'.html');
+		}
+	});
+	// 这里是对某个链接做特殊操作
+	/**$.History.bind('bbb',function(state){
+		alert('点击了 bbb 链接，这是对 bbb 链接特殊处理位置');
+	});**/
+	
+});
+function test(state){
+	 window.location.hash=state;  
+}
+</script>
+</head>
+<body>
+<br/>
+ <a  onclick="test('#user-detail?name=test')">显示user-detail.html</a></br>
+ <a  onclick="test('#user-list?age=26')">显示user-list</a>
+<div  id="contentDiv" style="width: 500px; height: 500px; border: 1px groove #e3e7ea;">
+测试
+</div>
+</body>
+</html>

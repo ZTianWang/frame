@@ -1,0 +1,66 @@
+package com.frame.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.frame.dti.AccountDti;
+import com.frame.entity.Account;
+import com.frame.service.AccountService;
+
+@RestController("/test")
+public class TestController {
+	@Autowired
+	private AccountService accountService;
+	
+	@RequestMapping(method=RequestMethod.PATCH)
+	public Account  patchAccount(@RequestBody AccountDti accountDti){
+		System.out.println(accountDti);
+		Account account=new Account();
+		account.setAccount("patch方法");
+		account.setCellphone("15801187545");
+		System.out.println("来到patch方法");
+		return account;
+	}
+	
+	@RequestMapping(method=RequestMethod.POST)
+	public Account  postAccount(@RequestBody AccountDti accountDti){
+		System.out.println(accountDti);
+		Account account=new Account();
+		account.setAccount("post方法");
+		account.setCellphone("15801187545");
+		System.out.println("来到post方法");
+		return account;
+	}
+	
+	@RequestMapping(method=RequestMethod.GET)
+	public Account  getAccount(){
+		Account account=new Account();
+		account.setAccount("get方法");
+		account.setCellphone("15801187545");
+		System.out.println("来到get方法");
+		return account;
+	}
+	
+	@RequestMapping(method=RequestMethod.DELETE)
+	public Account  deleteAccount(){
+		Account account=new Account();
+		account.setAccount("delete方法");
+		account.setCellphone("15801187545");
+		System.out.println("来到delete方法");
+		return account;
+	}
+	
+	@RequestMapping(method=RequestMethod.PUT)
+	public Account putAccount(@RequestBody AccountDti accountDti){
+		System.out.println(accountDti);
+		Account account=new Account();
+		account.setAccount("put方法");
+		account.setCellphone("15801187545");
+		System.out.println("来到put方法");
+		return account;
+	}
+
+}

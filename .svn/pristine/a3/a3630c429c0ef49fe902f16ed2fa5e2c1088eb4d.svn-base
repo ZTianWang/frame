@@ -1,0 +1,23 @@
+define(function(require, exports) {
+         $('#test').html(template('testHtml',{name:'楚白'}));
+      // alert(getParameter("age"));
+     
+          
+         require("js/jquery/jquery.md5");
+       c($.md5("哈哈123"));
+         
+        $('#button').bind('click',function (){
+        	target('index.html');
+        	KU.send({
+        		url:'test',
+        		type:'PUT',
+        		eText:true,
+        		data:{name:'姓名',age:26},
+        		sText:'成功',
+        		success:function(data){
+        			c(data);
+        		}
+        	});
+        });
+       
+});

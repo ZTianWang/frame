@@ -1,0 +1,49 @@
+package com.frame.mapper.base;
+
+import javax.persistence.Table;
+
+
+import static org.apache.ibatis.jdbc.SqlBuilder.*;
+
+import java.util.Map;
+
+public class MapperTemplate {
+
+	public String delete(Map<String, Object> parameter) {
+		String idname = id();
+		BEGIN();
+		DELETE_FROM(tablename((Class<?>)parameter.get("clz")));
+		WHERE(idname + "=#{" + idname + "}");
+	   return SQL();
+	}
+
+	/**
+	 * 通过自定义注解，得到类对应的表name
+	 * 
+	 * @return 类对应的数据库表名
+	 */
+	public String tablename(Class<?> clz) {
+
+		Table table = clz.getAnnotation(Table.class);
+		if (table != null)
+			return table.name();
+		else
+			throw new RuntimeException(this.getClass().getName() + " need use @Table");
+	}
+
+	/**
+	 * 暂时直接返回id，即数据库表中的主键
+	 * 
+	 * @return
+	 */
+	public String id() {
+		// for(Field field : this.getClass().getFields()) {
+		// if(field.isAnnotationPresent(Id.class))
+		// return field.getName();
+		// }
+		return "id";
+		// throw new RuntimeException("undefine POJO @Id");
+
+	}
+
+}

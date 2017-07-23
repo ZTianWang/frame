@@ -1,0 +1,103 @@
+package com.frame.utils.ftp;
+
+import org.apache.commons.net.ftp.FTPClient;
+
+/**
+ * FTPClient配置类，封装了FTPClient的相关配置
+ *
+ */
+public class FTPClientConfigure {
+	private String host;
+	private int port;
+	private int poolSize=10;
+	private String username;
+	private String password;
+	private String passiveMode="true";
+	private String encoding;
+	private int clientTimeout;
+	private int transferFileType=FTPClient.BINARY_FILE_TYPE;
+
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getPassiveMode() {
+		return passiveMode;
+	}
+
+	public void setPassiveMode(String passiveMode) {
+		this.passiveMode = passiveMode;
+	}
+
+	public String getEncoding() {
+		return encoding;
+	}
+
+	public void setEncoding(String encoding) {
+		this.encoding = encoding;
+	}
+
+	public int getClientTimeout() {
+		return clientTimeout;
+	}
+
+	public void setClientTimeout(int clientTimeout) {
+		this.clientTimeout = clientTimeout;
+	}
+
+ 
+
+	public int getTransferFileType() {
+		return transferFileType;
+	}
+
+	public void setTransferFileType(int transferFileType) {
+		this.transferFileType = transferFileType;
+	}
+
+	 
+
+	@Override
+	public String toString() {
+		return "FTPClientConfig [host=" + host + "\n port=" + port + "\n username=" + username + "\n password="
+				+ password + "\n passiveMode=" + passiveMode + "\n encoding=" + encoding + "\n clientTimeout="
+				+ clientTimeout + "\n transferFileType=" + transferFileType+"]";
+	}
+
+	public int getPoolSize() {
+		return poolSize;
+	}
+
+	public void setPoolSize(int poolSize) {
+		this.poolSize = poolSize;
+	}
+
+}

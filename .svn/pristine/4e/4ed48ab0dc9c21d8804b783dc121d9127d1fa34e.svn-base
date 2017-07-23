@@ -1,0 +1,85 @@
+define(function(require, exports) {
+	require('jvalid');// 引入jquery校验组件
+	require('js/uploadify');
+	var rules = {
+		password : {
+			maxlength : 12,
+			maxlengthText : '最长{0}个字符',
+		},
+		password_again : {
+			equalTo : "#password",
+		},
+		cellPhone : {
+			required : true,
+			mobile : true
+		},
+		email : {
+			required : true,
+			email : true
+		}
+	};
+
+	/* 页面初始化方法 */
+	exports.init = function() {
+		/* 先把参数id放进隐藏域，后续处理时，如果隐藏域内容为空，则说明是新增，否则就是修改 */
+		var accountId = getParameter('accountId');
+		$('#accountId').val(accountId);
+		/* 回显内容 */
+		KU.send({
+			url : 'account/' + accountId,
+			eText : {
+				500 : '数据回显错误，请重试'
+			},
+			success : function(data) {
+				$('#accountText').text(data.account);
+				$('#cellPhone').val(data.cellPhone);
+				$('#email').val(data.email);
+			}
+		});
+		/* 初始化加载校验组件及操作 */
+		var $accountForm=$('#accountForm');
+		$accountForm.validForm(rules, function(form) {
+			/* 如果验证通过，则排除相关input之后，序列化表单内容 */
+			var formJson = $accountForm.serializeJson([ 'password_again',  'accountHeadFile','idCardFile' ]);
+			/* 设置上传的头像字段 */
+			formJson['accountHeadFile'] = $accountForm.find('input[name="accountHeadFile"]').arrayVal();
+			/* 设置上传的身份证字段 */
+			formJson['idCardFile'] = $accountForm.find('input[name="idCardFile"]').arrayVal();
+			KU.send({
+				url : 'account/' + accountId,
+				type : 'PUT',
+				data : formJson,
+				success : function(data) {
+					back();
+				}
+			});
+
+		}, function() {// 如果校验失败，则恢复提交按钮的启用
+			$('#accountSubmitBtn').button('reset');
+		});
+
+		/**
+		 * 初始化加载上传组件及操作
+		 */
+			KU.send({
+				url : 'attachment/record/' + accountId,
+				eText : '加载附件失败',
+				success : function(data) {
+					/* 初始化头像上传 */
+					KU.renderFileTpl({
+						attList : data['0'],
+						btnId : 'accountHead',
+						recordId : accountId,
+						fileType : 0
+					});
+					KU.renderFileTpl({
+						attList : data['1'],
+						btnId : 'idCard',
+						recordId : accountId,
+						fileType : 1
+					});
+				}
+			});
+
+	}
+});

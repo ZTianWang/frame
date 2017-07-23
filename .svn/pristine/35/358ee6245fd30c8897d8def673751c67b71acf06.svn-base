@@ -1,0 +1,115 @@
+package com.frame.test;
+
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.frame.entity.AccountEntity;
+import com.frame.service.AccountService;
+import com.frame.service.AuthorizationService;
+import com.frame.service.base.FileOperationService;
+import com.frame.utils.KVMap;
+import com.frame.utils.pager.Pager;
+import com.frame.utils.pager.SystemContext;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+//配置了@ContextConfiguration注解并使用该注解的locations属性指明spring和配置文件之后，
+@ContextConfiguration(locations = {"classpath:applicationContext.xml", "classpath:spring-mybatis.xml" })
+public class SpringTest {
+
+	
+	 String id="9c17a60a46054bcc88a88db4abcd033d";//从数据库中找到数据id
+   
+	 @Autowired
+	 private AccountService accountService;
+	 @Autowired
+	 private  AuthorizationService authorizationService;
+	 @Autowired
+		private RedisTemplate<String, AccountEntity> redisTemplate;
+	 @Autowired
+	 private FileOperationService fileOperationService;
+//    @Test
+    public void add(){
+       AccountEntity account=new AccountEntity();
+       account.setAccount("android");
+       account.setCellPhone("15801187545");
+       account.setCreateDate(new Date());
+       account.setEmail("mrlixiaopeng@163.com");
+       account.setPassword("990448338");
+       //accountService.add(account);
+       
+    }
+//    @Test
+    public void updateAllProp(){
+    	   AccountEntity account=accountService.load("2f5a170f2a70442493ae482d5d27f625");
+    	   account.setAccount("great!");
+        	accountService.update(account);
+      
+    }
+//    @Test
+    public void updateDefinedProp(){
+ 	   AccountEntity account=new AccountEntity();
+ 	   account.setId(id);
+ 	   account.setAccount("mr");
+  	   accountService.update(account,new String[]{"account"});
+   
+ }
+//    @Test
+    public void delete(){
+    	accountService.delete(id);
+//    	accountService.delete(new String[]{"1","2"});
+    }
+ 
+//    @Test
+    public void count() {
+    	KVMap<String, Object> paramter=new KVMap<String,Object>();
+    	paramter.add("createDate", "2016-04-09 11:35:21");
+    	int num=accountService.count("createDate>=#{createDate}",paramter );
+    	 System.out.println("from count:"+num);
+    }
+//    @Test
+    public void findList(){
+    	KVMap<String, Object>  parameter=new KVMap<String,Object>();
+    	List<AccountEntity> list=accountService.findList("account=#{account}", parameter.add("account", "alfred"),new String[]{"account"});
+    	System.err.println(list);
+    }
+    
+//    @Test
+    public void findPager() {
+    	SystemContext.setPageSize(15);
+    	SystemContext.setPageOffset(0);
+    	SystemContext.setSort("createDate");
+    	SystemContext.setOrder("desc");
+    	KVMap<String, Object> paramter=new KVMap<String,Object>();
+    	paramter.add("createDate", "2016-04-09 11:35:21");
+    	Pager<AccountEntity> page=accountService.findPage("createDate>#{createDate}", paramter);
+    	System.out.println(page.getData());
+    }
+    
+//    @Test
+    public void test() throws FileNotFoundException{
+    	fileOperationService.uploadFile("20180606/","111.jpg", new FileInputStream("d:/1.jpg"));
+    }
+    
+    @Test
+    public void testMenus() throws JsonProcessingException{
+    	/*List<Map<String, Object>>  map= authorizationService.findMenusInfoByAuthorization("7ab51cd93f72472f9ec4481cb1af5938");
+       ObjectMapper om=new ObjectMapper();
+      System.out.println(om.writeValueAsString(map));*/
+    }
+   
+}

@@ -1,0 +1,138 @@
+package com.frame.utils.interceptor;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import com.frame.dto.AuthorizationDto;
+import com.frame.service.AuthorizationService;
+import com.frame.utils.Constant;
+import com.frame.utils.HttpCode;
+import com.frame.utils.StringUtil;
+import com.frame.utils.exception.FrameException;
+import com.frame.utils.pager.SystemContext;
+
+public class AuthInterceptor extends HandlerInterceptorAdapter {
+	private AuthorizationService authorizationService;
+	private int defaultPageSize = 15;
+	private Set<String> allowUriNotLoggedIn = new HashSet<String>();// 未登录直接允许访问的uri
+	private Set<String> allowUriLoggedIn = new HashSet<String>();// 登录之后允许直接访问的uri
+
+	@Override
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+		// 直接从aop中处理得到实际访问的uri，并且是形式上定义的uri
+		String uri = null;
+		HandlerMethod handlerMethod = (HandlerMethod) handler;
+		String[] rmValue;
+		// 得到controller的映射
+		rmValue = handlerMethod.getBeanType().getAnnotation(RequestMapping.class).value();
+		uri = rmValue[0];
+		// 得到method的映射
+		rmValue = handlerMethod.getMethod().getAnnotation(RequestMapping.class).value();
+		if (rmValue.length != 0) {
+			uri += rmValue[0];
+		}
+		String method = request.getMethod();
+		/* 分页特殊处理 */
+		if (uri.endsWith("/page")) {
+			excutePageInfo(request);
+		}
+		String umFlag = uri + "-" + method;
+		// 未登录直接允许访问的
+		if (allowUriNotLoggedIn.contains(umFlag)) {
+			return true;
+		}
+		// 从header中取出登录凭证，此处先简单判断是否为空
+		String authorization = request.getHeader(Constant.AUTHORIZATION);
+		if (StringUtil.isEmpty(authorization)) {
+			throw new FrameException("登录失效，请登录", HttpCode.NOT_LOGGED_IN);
+		}
+		AuthorizationDto authorizationDto = authorizationService.findAuthorizationDtoByAuthorization(authorization);
+		if (authorizationDto == null) {
+			throw new FrameException("登录失效，请登录", HttpCode.NOT_LOGGED_IN);
+		}
+		// 集群情况，模拟传统session自动延时
+		authorizationService.expire(authorization, request.getIntHeader(Constant.DEVICE_TYPE));
+         /*登录之后，直接允许访问的url*/
+		if (allowUriLoggedIn.contains(umFlag)) {
+			return true;
+		}
+		/* 校验权限   暂时注释掉后台权限过滤*/
+//		if (!validAuth(uri+method,authorizationDto.getFunctions())) {
+//			throw new FrameException("权限不匹配", HttpCode.FORBBIDEN);
+//		}
+		return true;
+	}
+
+	@Override
+	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+		String uri = request.getRequestURI();
+		if (uri.endsWith("/page")) {
+			removePageInfo();
+		}
+
+	}
+
+	public boolean validAuth(String flag, Set<String> functions) {
+		if (functions == null) {
+			throw new FrameException("权限不匹配", HttpCode.FORBBIDEN);
+		}
+		return functions.contains(flag);
+	}
+
+	/**
+	 * 处理分页信息
+	 */
+	public void excutePageInfo(HttpServletRequest req) {
+		Integer offset = 0;
+		try {
+			offset = Integer.parseInt(req.getParameter("offset"));
+		} catch (NumberFormatException e) {
+		}
+		String pageSizeStr = req.getParameter("pageSize");
+		Integer pageSizeParam = defaultPageSize;
+		if (pageSizeStr != null) {
+			try {
+				pageSizeParam = Integer.parseInt(pageSizeStr);
+			} catch (NumberFormatException e) {
+			}
+		}
+		SystemContext.setOrder(req.getParameter("order"));
+		SystemContext.setSort(req.getParameter("sort"));
+		SystemContext.setPageOffset(offset);
+		SystemContext.setPageSize(pageSizeParam);
+	}
+
+	/**
+	 * 删除分页信息
+	 */
+	public void removePageInfo() {
+		SystemContext.removeOrder();
+		SystemContext.removeSort();
+		SystemContext.removePageOffset();
+		SystemContext.removePageSize();
+	}
+
+	public void setAuthorizationService(AuthorizationService authorizationService) {
+		this.authorizationService = authorizationService;
+	}
+
+	public void setDefaultPageSize(int defaultPageSize) {
+		this.defaultPageSize = defaultPageSize;
+	}
+
+	public void setAllowUriNotLoggedIn(Set<String> allowUriNotLoggedIn) {
+		this.allowUriNotLoggedIn = allowUriNotLoggedIn;
+	}
+	 
+	public void setAllowUriLoggedIn(Set<String> allowUriLoggedIn) {
+		this.allowUriLoggedIn = allowUriLoggedIn;
+	}
+
+}

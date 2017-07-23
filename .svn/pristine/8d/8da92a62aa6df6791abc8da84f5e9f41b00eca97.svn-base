@@ -1,0 +1,47 @@
+package com.frame.entity;
+
+import javax.persistence.Column;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.frame.entity.base.BaseEntity;
+
+/*CREATE TABLE `t_user` (
+		  `id` char(32) NOT NULL,
+		  `oorder` int(11) DEFAULT NULL,
+		  `user_name` varchar(10) DEFAULT NULL,
+		  `create_date` datetime DEFAULT NULL,
+		  PRIMARY KEY (`id`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;*/
+@Table(name="t_user")
+@JsonInclude(Include.NON_EMPTY) 
+public class User extends BaseEntity {
+  
+	private static final long serialVersionUID = 1L;
+	@Column
+	private int oorder;
+	@Column
+	private String userName;
+
+	public int getOorder() {
+		return oorder;
+	}
+
+	public void setOorder(int oorder) {
+		this.oorder = oorder;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	
+	public String toString(){
+		return getId()+","+getUserName()+","+getOorder()+","+getCreateDate();
+	}
+
+}

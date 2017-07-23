@@ -1,0 +1,542 @@
+define(function(require, exports, module) {
+(function(window) {
+  /*顶级命名空间*/
+  window.ky = window.ky || {
+      version: '1.0',
+      name:'RESTful',
+      deviceType:1/*设备类型来源  1为pc网页*/
+  };
+  /*ky.utils中放置常用的公共内容*/
+  ky.utils = ky.utils || {};
+  /*ky.ui中放置和html元素有关的公共内容*/
+  ky.ui = ky.ui || {};
+  window.KU=ky.utils;/*简短别名*/
+  window.KUI=ky.ui;
+  /*页面相关*/
+  KU.page={
+		  pageNo:1,
+          pageSize:10
+  };
+  KU.cookieRelative = {
+          account: 'account',
+          authorization: 'Authorization',
+  };
+  KU.upload={
+          host:'http://127.0.0.1:8079/'
+  };
+  KU.codes={
+          400:'请求参数错误',
+          404:'数据不存在',
+          405:'请求失败,不存在此操作',
+          412:'操作冲突，请查看最新内容',
+          500:'服务器处理失败',
+          406:'数据已存在',
+          401:'权限不匹配',
+          402:'登录失效，请登录',
+          911:'服务器异常，无法响应'
+  };
+  KU.roleFunctions=KU.roleFunctions||{};
+  KU.menuModules=KU.menuModules||{};
+  KU.navText=KU.navText||{};
+  KU.hist=KU.hist||{};
+})(window);
+/*自定义命名空间的，和业务多少有直接关系的公共方法*/
+(function(KU) {
+	/*指定key和data存储历史缓存*/
+	KU.setHist=function(key,data){
+		KU.hist[key]=data;
+	};
+	/*
+	 *指定key获取存数的历史缓存,如果没有指定doNotDel，则取完之后删除
+	 */
+	KU.getHist=function(key,doNotDel){
+		var data=KU.hist[key];
+		!doNotDel&&delete KU.hist[key];/*获取之后，直接删除*/
+		return data;
+	} 
+	/**
+	 * 根据标示，获取导航位置数组,同时处理菜单的显示效果
+	 */
+	KU.getNavTextArray=function(url,arrayParam){
+		  var userUrl=url.replace(/\//g, '');
+		/*判断是否打开一级菜单*/
+		  var $temp=$('#'+userUrl+'SubMenu');
+		  $temp.length>0&&!$temp.parent().hasClass('open')&&$temp.trigger('click');
+		  /*判断二级菜单是否css标注*/
+		  $temp=$('#'+userUrl+'NavLi');
+		  $temp.length>0&&!$temp.hasClass('active')&&$temp.addClass('active');
+		    
+		var array=(arrayParam?arrayParam:new Array());
+		var obj=KU.navText[url];//根据当前url，得到对应的导航对象
+		if(obj){
+			array.unshift(obj.text);
+			if(obj.parent){
+				KU.getNavTextArray(obj.parent,array);
+			}
+		}
+		return array;
+	}
+
+/**
+  * code:实际的状态码
+  * override：覆盖、新增公共的状态码:{401:'无权限操作',500:'操作失败'}
+  */
+  KU.showSText=function(code,override){
+    if(override){
+      var tempCodes =$.extend({},KU.codes); 
+      for(var attr in override){
+        tempCodes[attr]=override[attr];
+      }
+      newsHint(tempCodes[code]?tempCodes[code]:KU.codes[911]);
+    }else{
+      newsHint(KU.codes[code]?KU.codes[code]:KU.codes[911]);
+    }
+  }; 
+  
+  
+  KU.calcSize=function(size){
+  var fileSize = Math.ceil(size / 1024);
+	var suffix   = 'KB';
+	if (fileSize > 1000) {
+		fileSize = Math.round(fileSize / 1000);
+		suffix   = 'MB';
+	}
+	var fileSizeParts = fileSize.toString().split('.');
+	fileSize = fileSizeParts[0];
+	if (fileSizeParts.length > 1) {
+		fileSize += '.' + fileSizeParts[1].substr(0,2);
+	}
+	 fileSize += suffix;
+	 return fileSize;
+  };
+  KU.getFunction=function(menuFunctions,flag){
+	  if(!flag){
+		  return  KU.roleFunctions[menuFunctions]
+	  }
+	  var functions=false;
+	  if(menuFunctions&&menuFunctions.length>0){
+	  if(typeof flag=='string'){
+			    for(var i=0;i<menuFunctions.length;i++){
+				   var funObj=menuFunctions[i];
+				   if(funObj.flag==flag){
+					   functions=funObj;
+					   break;
+				   }
+			   }
+	  }else{
+		  functions=new Array();
+		   for(var i=0;i<menuFunctions.length;i++){
+			   var funObj=menuFunctions[i];
+			   if($.inArray(funObj.flag, flag)!=-1){
+				   functions.push(funObj);
+			   }
+		   }
+	  }
+	}
+	  return functions;
+  };
+  /*回显附件公共方法*/
+  KU.renderFileTpl=function(dataObj){
+	 	 var defaultDataObj={ 
+	    	     attList:[],
+	             btnId:'', 
+	             calcSize:KU.calcSize,
+	             maxNum:2,/*默认最多上传2个文件*/
+	             fileType:0,
+	             recordId:'',
+	 	         uploadify:{}
+	             };
+	 	$.extend(defaultDataObj, dataObj);
+	 	var $btn=$('#' + defaultDataObj.btnId);
+	 	var uploadifyParameters={
+	 			queueSizeLimit:defaultDataObj.maxNum,
+				formData:{
+					fileType:defaultDataObj.fileType,
+					recordId:defaultDataObj.recordId
+				},
+				onSWFReady : function() {
+					var $startUpload=$('#'+defaultDataObj.btnId+'Upload'); 
+					if($startUpload.length>0){
+						$startUpload.on('click', function() {
+							$btn.uploadify('upload', '*');
+						});
+					}
+					
+					if(defaultDataObj.attList&&defaultDataObj.attList.length!=0){
+						  if(defaultDataObj.attList.length>=defaultDataObj.maxNum){
+							  $btn.uploadify('disable', true); 
+						     } 
+						  $.ajax({
+								 url:'/resources/upload-tpl.html',
+								 success:function(content){
+								    $('#'+defaultDataObj.btnId+'-queue').append(template.compile(content)(defaultDataObj));  
+								} 
+							});
+					}
+				}
+			};
+	 	$.extend(uploadifyParameters, defaultDataObj.uploadify);
+	 	$btn.uploadify(uploadifyParameters);
+  };
+})(ky.utils);  
+/*cookie相关*/
+
+/*ajax请求处理*/
+(function(KU) {  
+var ajax = {};
+    /*初始化方法*/
+    ajax.init = function() {
+    ajax.settings = {
+      url: '',
+      type: 'GET',
+      timeout:50000000, 
+      dataType: 'json',
+      eText: true, /*错误时提示的信息可以是字符串，也可以是{401:'测试',500:'测试111'}]，指定返回状态码及提示信息*/
+      sText: '', /*成功时提示的信息*/
+      data: {},
+      async: true,
+      cache:false,
+      success: function() {},
+      error: function() {},
+      complete: function() {},
+      ajaxSetHeader: function() {}
+    };
+  };
+  ajax.send = function(options) {
+	  var $loading=$('#ajaxLoading');
+    if(options.loading==null||options.loading){//指定loading参数false则不显示
+    if($loading.length>0){
+    	$loading.show();
+    }else{
+    	$('body').prepend('<div id="ajaxLoading"   class="loading"></div>');
+    	$loading=$('#ajaxLoading');
+      }
+   }
+    ajax.init();
+    var settings,contentType=null, data=null;
+    $.extend(ajax.settings, options);
+    settings = ajax.settings;
+//      if (settings.dataType == 'json') {
+        contentType = 'application/json; charset=UTF-8';
+        if (settings.type.toUpperCase() !== 'GET') {
+        	if(settings.type.toUpperCase()== 'PATCH'){/*兼容ie8等不支持新型http协议的情况*/
+        		settings.type="POST";
+        		settings.url+='?_method=PATCH';
+        	}
+          data = JSON.stringify(settings.data);
+        } else {
+          /*如果是get方式，则对参数进行trim*/
+          for(attr in settings.data){
+            if(typeof settings.data[attr]=='string'){
+              settings.data[attr]=$.trim(settings.data[attr]);
+            }
+            }
+          /*只有当url包含page，即时查询时才处理公共分页参数*/
+          if (settings.url.indexOf('/page') != -1){
+        	  if(!settings.data.pageSize){
+        		  settings.data['pageSize'] = KU.page.pageSize; /*拼接总页数 */
+        	  }
+        	  if(!settings.data['offset']){
+        		  settings.data['offset'] =(KU.page.pageNo-1)*settings.data.pageSize; /*拼接当前页*/
+        	  }
+            ky.utils.page.pageNo=1;/*每次其它地方调用之后重置页码为1*/
+          }
+          data = settings.data;
+        }
+//      };
+ 
+    $.ajax({
+      url: host+settings.url,/*绝对路径，避免出错*/
+      type: settings.type,
+      timeout:settings.timeout,
+     // dataType: settings.dataType,千万不要放开，否则容易出现兼容问题
+      contentType: contentType,
+      data: data,
+      cache: settings.cache,
+      async: settings.async,
+      beforeSend: function(request) {
+        var token = $.cookie(KU.cookieRelative.authorization);
+        token && request.setRequestHeader(KU.cookieRelative.authorization, token);
+        request.setRequestHeader('Device-Type', ky.deviceType);/*pc访问*/
+        settings.ajaxSetHeader.call(null, request);
+      },
+      success: function(responseText, statusText, xhr) {
+        if (settings.sText.length > 0) { /*如果成功且提示不为空，则显示成功提示*/
+          newsHint({
+            className: 'newsSuccess',
+            text: settings.sText
+          });
+        }
+        settings.success.call(null, responseText, statusText, xhr);
+      },
+      complete: function(response) {
+        $loading.hide();
+        resetBtn();
+        settings.complete.call(null, response);
+      },
+      error: function(response) {
+        if (response.status == 402) {
+        	$.cookie(KU.cookieRelative.authorization, null);
+        	alert('【登录失效】\n  请备份正在编辑的信息，然后重新登录');
+        	return;
+          //window.location.href = '/login.html';
+        } else {
+          if(settings.eText&&settings.eText!=false){
+            if(typeof settings.eText=='string') { /*如果错误提示是string,则直接提示*/
+              newsHint(settings.eText);
+            }else if(typeof settings.eText=='object'||settings.eText==true){
+              KU.showSText(response.status, settings.eText);
+            } 
+          }
+          settings.error.call(null, response);
+        }
+      }
+    });
+  };
+ KU.ajax = ajax;
+ KU.send=ajax.send;
+})(ky.utils); 
+  
+/*封装和业务无直接关系的常用方法*/
+(function(window) {
+    $.fn.placeholder=function (options) {
+        options = $.extend({
+            placeholderColor:'#999999',
+            isUseSpan:true, //是否使用插入span标签模拟placeholder的方式,默认false,默认使用value模拟
+            onInput:true  //使用标签模拟(isUseSpan为true)时，是否绑定onInput事件取代focus/blur事件
+        }, options);
+        $(this).each(function () {
+            var _this = this;
+                var defaultValue = $(_this).attr('placeholder');
+                var defaultColor = $(_this).css('color');
+                if (options.isUseSpan == false) {
+                    $(_this).focus(function () {
+                        var pattern = new RegExp("^" + defaultValue + "$|^$");
+                        pattern.test($(_this).val()) && $(_this).val('').css('color', defaultColor);
+                    }).blur(function () {
+                            if ($(_this).val() == defaultValue) {
+                                $(_this).css('color', defaultColor);
+                            } else if ($(_this).val().length == 0) {
+                                $(_this).val(defaultValue).css('color', options.placeholderColor)
+                            }
+                        }).trigger('blur');
+                } else {
+                    var $imitate = $('<span class="wrap-placeholder" style="position:absolute; display:inline-block; overflow:hidden; color:'+options.placeholderColor+'; width:'+$(_this).outerWidth()+'px; height:'+$(_this).outerHeight()+'px;">' + defaultValue + '</span>');
+                    $imitate.css({
+                    	'z-index':2,
+                        'margin-left':$(_this).css('margin-left'),
+                        'margin-top':$(_this).css('margin-top'),
+                        'font-size':$(_this).css('font-size'),
+                        'font-family':$(_this).css('font-family'),
+                        'font-weight':$(_this).css('font-weight'),
+                        'padding-left':parseInt($(_this).css('padding-left')) + 2 + 'px',
+                        'line-height':_this.nodeName.toLowerCase() == 'textarea' ? $(_this).css('line-weight') : $(_this).outerHeight() + 'px',
+                        'padding-top':_this.nodeName.toLowerCase() == 'textarea' ? parseInt($(_this).css('padding-top')) + 2 : 0
+                    });
+                    $(_this).before($imitate.click(function () {
+                        $(_this).trigger('focus');
+                    }));
+
+                    $(_this).val().length != 0 && $imitate.hide();
+
+                    if (options.onInput) {
+                        //绑定oninput/onpropertychange事件
+                        var inputChangeEvent = typeof(_this.oninput) == 'object' ? 'input' : 'propertychange';
+                        $(_this).bind(inputChangeEvent, function () {
+                            $imitate[0].style.display = $(_this).val().length != 0 ? 'none' : 'inline-block';
+                        });
+                    } else {
+                        $(_this).focus(function () {
+                            $imitate.hide();
+                        }).blur(function () {
+                                /^$/.test($(_this).val()) && $imitate.show();
+                            });
+                    }
+                }
+        });
+    };
+	$.fn.sd=function(){
+		var $val=$(this).val();
+		if($val!=''){
+			return $val+' 00:00:00';
+		}
+	    return '';
+	 };
+$.fn.ed=function(){
+	var $val=$(this).val();
+	if($val!=''){
+		return $val+' 23:59:59';
+	}
+    return '';
+	
+ };
+  /* 根据参数名获得url中的参数值 */
+ window.getParameter = function(name) {
+     var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+     var r = decodeURI(location.hash.substr(1)).match(reg);
+     if (r != null) return  r[2];
+     return null;
+ };
+ window.setParameter= function(paramName,paramValue) {
+	    var hash = location.hash;
+	   if(arguments.length==2){
+		   if(hash.indexOf(paramName+'=')==-1){
+			  return hash+='&'+paramName+'='+paramValue;
+		   }
+	       var re=eval('/('+ paramName+'=)([^&]*)/gi');
+		   return hash.replace(re,paramName+'='+paramValue);
+	    }else{
+	    	for(var attr in  paramName){
+	    		 var tempValue=paramName[attr];
+	    		 if(hash.indexOf(attr+'=')==-1){
+	    			 if(tempValue==''){continue;}
+	    			 hash+='&'+attr+'='+tempValue;
+	    		 }else{
+	    			 if(tempValue==''){
+	    				 hash=hash.replace(eval('/(&'+ attr+'=)([^&]*)/gi'),'');
+	    			 }else{
+	    				 hash=hash.replace(eval('/('+ attr+'=)([^&]*)/gi'),attr+'='+tempValue);
+	    			 }
+	    		 }
+	    	}
+	    	return hash;
+	    }
+	}
+window.back=function(){
+	window.history.go(-1);
+}
+ window.c=function(info){
+      window.console&&console.log(info);
+     };
+     window.downloadFile=function(fileID){
+    	 if(fileID){
+    		 var  $cancelFunction=$('#' + fileID).find('.cancelFunction');
+    		 var  fileUniqueId=$cancelFunction.attr('fileUniqueId');
+    		 if(!fileUniqueId){
+    			 newsHint('请先上传');
+    			 return;
+    		 }
+    		 window.open(KU.upload.host+fileUniqueId);
+    	 } 
+     }
+     var showUploadImgTimeFlag;
+ window.showUploadImg=function(fileID){
+	 showUploadImgTimeFlag&&clearTimeout(showUploadImgTimeFlag);
+	 showUploadImgTimeFlag=setTimeout(function(){
+		 var  $cancelFunction=$('#' + fileID).find('.cancelFunction');
+		 var  fileUniqueId=$cancelFunction.attr('fileUniqueId');
+		 if(fileUniqueId){
+		 var id=fileID+'showUploadImg';
+		 var d=dialog.get(id);
+		 if(!d){
+			 d=dialog({
+				    id:id,
+				    align:'right',
+//				    content: '<img  style="border:0;max-width:450px;height:auto;margin: -17px -17px -21px -17px;" src="'+KU.upload.host+fileUniqueId+'">',
+//				    zIndex:1
+				});
+			    d.show(document.getElementById(fileID+'showImg'));
+			    var objImg = new Image();
+			    objImg.onload = function() {
+			    	if(d){
+			    		d.content(objImg);
+			    		d.reset();
+			    	}
+			    }
+			    objImg.style.cssText='border:0;max-width:350px;max-height:250px;margin: -17px -17px -16px -17px;';
+			    objImg.src =KU.upload.host+fileUniqueId;
+			    
+		 }
+		 
+	    }
+	 }, 350);
+	 
+ 
+ };
+ window.removeUploadImg=function(fileID){
+	 showUploadImgTimeFlag&&clearTimeout(showUploadImgTimeFlag);
+	 var id=fileID+'showUploadImg';
+	 var d=dialog.get(id);
+	 if(d){
+		 d.remove();
+	 }
+};
+ window.newsHint=function(options) {
+     newsHint.prototype.init(options);
+ };
+ newsHint.prototype = {
+     constructor: newsHint,
+     init: function(options) {
+       this.setings = {
+         text: '',
+         className: '',
+         time: '1300',
+         style: ''
+       };
+       this.defaults = {};
+       if (typeof(options) == 'string') {
+         this.defaults.text = options;
+       } else {
+         this.defaults = options;
+       }
+       this.opts = $.extend({}, this.setings, this.defaults);
+       this.create();
+       this.removeDilog();
+     },
+     create: function() {
+       this.$dalog = $('<div class="newsHint '+ this.opts.className + '" style="z-index:2015;' + this.opts.style + '">' + this.opts.text + '</div>');
+       this.$dalog.appendTo("body");
+     },
+     removeDilog: function() {
+       setTimeout(function() {
+         $(".newsHint").remove();
+       }, this.opts.time);
+     }
+   };
+ 
+ window.DLG=function(options){
+	 var defaults={
+			 okValue:'确定',
+			 cancelValue:'取消',
+			 quickClose: false
+	 };
+	 $.extend(defaults, options);
+	 return  dialog(defaults);
+ };
+window.initPlaceHolder=function(){
+	if(!('placeholder' in document.createElement('input'))){
+    	$('form :input[placeholder]').placeholder();
+    }
+};
+/*默认监听某些组件       开始*/
+/*监听class为lockControl的按钮，如果点击了则置为disabled，并且提交id为submitFormId属性值的form（如果有该值）*/
+$('body').on('click','.lockControl',function(){ 
+		 var  $this=$(this);
+		  $this.attr('disabled',true);
+		 var submitFormId=$this.attr('submitFormId');
+		 if(submitFormId){
+			 $('#'+submitFormId).submit();
+		 }
+	 }); 
+
+ 
+$('body').on('click', '.jump-btn', function() { //点击三级菜单
+	 location.hash=$(this).attr("data");
+});
+
+$('body').on('click', 'input[data-loading-text]', function() { //点击三级菜单
+	var $this=$(this);
+	$this.button('loading');
+	$('body').data('data-loading-obj',$this);
+});
+window.resetBtn=function(){
+	 setTimeout(function(){
+		 var loadingObj=$('body').data('data-loading-obj');
+	     loadingObj&&loadingObj.button('reset');
+	 }, 0);
+	
+};
+/*默认监听某些组件   结束*/
+})(window);
+});
+

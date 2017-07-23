@@ -1,0 +1,30 @@
+<div class="container-fluid">
+	<div class="widget-box bm">
+		<div class="widget-title">
+			<i class="icon icon-th-large kjtubiao"></i>
+			<h5>店铺创建</h5>
+		</div>
+		<div class="widget-content">
+				<table class="table  view-table table-style1">
+					<tbody>
+						<tr>
+							<th>店铺名称</th>
+							<td><span >ABC店铺</span></td>
+							<th>店铺分类</th>
+							<td><span >奢侈品</span></td>
+						</tr>
+						<tr>
+							<th>店铺描述</th>
+							<td colspan="3"><span>世界顶级奢侈品</span></td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="text-center">
+					<input class="btn btn-large  ml" type="button" value="返回" onclick="back();" />
+				</div>
+
+		</div>
+	</div>
+</div>
+<!-- 当前页面要出现在顶部当前位置的文字 -->
+<input type="hidden" id="breadcrumbText" parent="/shop/manager1" value="创建" />

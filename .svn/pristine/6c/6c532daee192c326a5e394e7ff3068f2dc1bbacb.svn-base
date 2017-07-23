@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+   
+   <!--  <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings> -->
+    <typeAliases>
+    <!--指定自动扫描entity中的类，默认的名字为： javabean 的首字母小写的非限定类名来作为它的别名-->
+    <package name="com.frame.entity"/>
+     <!-- <typeAlias alias="UserEntity" type="com.frame.entity.User"/> 
+     也可在javabean 加上注解@Alias 来自定义别名， 例如： @Alias("自定义简称") 
+     -->
+    </typeAliases>
+</configuration>

@@ -1,0 +1,24 @@
+package com.frame.test;
+
+import org.crazycake.utils.CamelNameUtils;
+
+import com.frame.entity.Account;
+import com.frame.entity.User;
+
+public class Test {
+	
+     
+	
+	public static void main(String[] args) {
+		Account account;
+//		String sql="email";
+//		 System.out.println(CamelNameUtils.camel2underscore(sql));
+//		  System.out.println(CamelNameUtils.underscore2camel("create_date_user_name"));
+//		 System.out.println(CamelNameUtils.capitalize("createDate"));
+		
+     }
+	
+ 
+	  
+   
+}

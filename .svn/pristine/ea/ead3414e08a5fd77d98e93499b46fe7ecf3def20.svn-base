@@ -1,0 +1,93 @@
+package com.frame.command;
+
+import java.util.List;
+
+/**
+ * account页面传参
+ * @author Lxp
+ *
+ */
+public class AccountCommand {
+	private String account;
+	private String password;
+	private String cellPhone;
+	private String email;
+	private List<String> headFile;
+	private List<String> idCardFile;
+	private List<String> addRoles;
+	private List<String> deleteRoles;
+	public String getAccount() {
+		return account;
+	}
+
+	public void setAccount(String account) {
+		this.account = account;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	 
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	 
+
+	 
+
+	public String getCellPhone() {
+		return cellPhone;
+	}
+
+	public void setCellPhone(String cellPhone) {
+		this.cellPhone = cellPhone;
+	}
+
+	public List<String> getIdCardFile() {
+		return idCardFile;
+	}
+
+	public void setIdCardFile(List<String> idCardFile) {
+		this.idCardFile = idCardFile;
+	}
+
+ 
+
+	public List<String> getHeadFile() {
+		return headFile;
+	}
+
+	public void setHeadFile(List<String> headFile) {
+		this.headFile = headFile;
+	}
+
+	public List<String> getAddRoles() {
+		return addRoles;
+	}
+
+	public void setAddRoles(List<String> addRoles) {
+		this.addRoles = addRoles;
+	}
+
+	public List<String> getDeleteRoles() {
+		return deleteRoles;
+	}
+
+	public void setDeleteRoles(List<String> deleteRoles) {
+		this.deleteRoles = deleteRoles;
+	}
+
+ 
+
+}

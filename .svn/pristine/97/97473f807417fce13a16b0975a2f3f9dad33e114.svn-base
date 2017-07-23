@@ -1,0 +1,76 @@
+package com.frame.test;
+
+
+import java.util.Date;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.frame.entity.User;
+import com.frame.service.UserService;
+import com.frame.utils.KVMap;
+import com.frame.utils.pager.Pager;
+import com.frame.utils.pager.SystemContext;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+//配置了@ContextConfiguration注解并使用该注解的locations属性指明spring和配置文件之后，
+@ContextConfiguration(locations = {"classpath:applicationContext.xml", "classpath:spring-mybatis.xml" })
+public class SpringTest {
+
+	
+	 String id="73936c59d0964956b43a5a543038d821";//从数据库中找到数据id
+    //注入userService
+    @Autowired
+    private UserService userService;
+    
+//    @Test
+    public void addUser(){
+        User user = new User();
+        user.setUserName("测试一下");
+        user.setOorder(999999);
+        user.setCreateDate(new Date());
+        userService.add(user);
+    }
+//    @Test
+    public void updateUser(){
+        User user=new User();
+        user.setId(id);
+        	 user.setOorder(007);
+        	 user.setUserName("alfred");
+        	 userService.update(user);
+    }
+//    @Test
+    public void deleteUser(){
+        userService.delete(id);
+    }
+    
+//    @Test
+    public void load() {
+    	 User user=userService.load(id);
+    	 System.out.println("from load:"+user);
+    }
+//    @Test
+    public void count() {
+    	int num=userService.count("oorder=#{oorder}", new KVMap<String,Object>().add("oorder", "7"));
+    	 System.out.println("from count:"+num);
+    }
+    @Test
+    public void findList() {
+//    	int i=userService.count("oorder>#{order}", new KVMap<String,Object>().add("order", 2));
+//    	System.out.println(i+"=========");
+//    	List<User> list=userService.findListttt("1=1",new KVMap<String,Object>());
+//      for(User user:list){
+//    	 System.out.println("from findList:"+user);
+//     }
+    	SystemContext.setPageSize(15);
+    	SystemContext.setPageOffset(0);
+    	Pager<User> page=userService.findPage("oorder>#{order}", new KVMap<String,Object>().add("order", 2));
+    	System.out.println(page.getData());
+    
+    }
+    
+   
+}

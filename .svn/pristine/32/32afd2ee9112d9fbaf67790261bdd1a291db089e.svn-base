@@ -1,0 +1,27 @@
+package com.frame.test;
+
+import com.frame.utils.SecurityUtil;
+
+public class Test {
+	 
+     
+	
+	public static void main(String[] args) throws Exception {
+            String sql="  and test and test";
+             System.out.println(getCondition(sql));
+             System.out.println(sql);
+            
+     }
+	 
+ 
+	public static String getCondition(String sql){
+		sql=sql.trim();
+		if(sql.startsWith("and")){
+			return sql.substring(3);
+		} 
+			return sql;
+	}
+	
+	  
+   
+}

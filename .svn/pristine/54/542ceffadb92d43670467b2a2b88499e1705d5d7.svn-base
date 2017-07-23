@@ -1,0 +1,33 @@
+package com.frame.service.base;
+
+import java.lang.reflect.ParameterizedType;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.frame.mapper.base.BaseMapper;
+public class BaseService<T> {
+	
+	@Autowired
+	private BaseMapper baseMapper;
+	private Class<?> clz;
+
+	public Class<?> getClz() {
+		if (clz == null) {
+			// 获取泛型的Class对象
+			clz = ((Class<?>) (((ParameterizedType) (this.getClass().getGenericSuperclass()))
+					.getActualTypeArguments()[0]));
+		}
+	 
+		return clz;
+	}
+
+	public void delete(String id) {
+		Map<String, Object> parameter=new HashMap<String, Object>();
+		parameter.put("id", id);
+		parameter.put("clz", getClz());
+    baseMapper.delete(parameter);
+	}
+
+}
